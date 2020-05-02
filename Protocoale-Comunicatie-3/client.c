@@ -120,6 +120,12 @@ int main() {
             int get_books_ret = get_books(sockfd, jwt_token);
             RESTORE_SOCKFD(get_books_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
+
+        } else if (strncmp(input_buffer, ADD_BOOK, sizeof(ADD_BOOK) - 1) == 0) {
+
+            int add_book_ret = add_book(sockfd, jwt_token);
+            RESTORE_SOCKFD(add_book_ret == OPERATION_CONNECTION_CLOSED, 
+                    sockfd, server_ip);
         
         } else if (strncmp(input_buffer, EXIT, sizeof(EXIT) - 1) == 0) {
 

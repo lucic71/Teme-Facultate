@@ -5,13 +5,19 @@
 #define MAX_PASS_SZ    100
 
 /*
- * Number of components implied in a register operation:
+ * Number of components used in a register/login operation:
  *  username
  *  psasword
  *
  */
-#define REGISTER_ELEM_NO 2
-#define LOGIN_ELEM_NO    2
+#define AUTH_INFO_ELEMS 2
+
+/*
+ * Names of the fields in auth_info_t.
+ *
+ */
+#define USERNAME "username"
+#define PASSWORD "password"
 
 typedef struct auth_info {
     char *username;

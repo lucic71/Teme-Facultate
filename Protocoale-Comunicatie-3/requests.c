@@ -15,7 +15,7 @@
 #include <memory.h>
 
 char *compute_get_request(char *host, char *url, char *query_params,
-                            char **cookies, int cookies_count)
+                            char **cookies, int cookies_count, char *auth_token)
 {
     char *message;
     CALLOC(message, BUFLEN);
@@ -66,6 +66,17 @@ char *compute_get_request(char *host, char *url, char *query_params,
     }
 
     /*
+     * Add the authorization token.
+     *
+     */
+    if (auth_token != NULL) {
+        memset(line, 0x00, LINELEN);
+        sprintf(line, "Authorization: Bearer %s", auth_token);
+
+        compute_message(message, line);
+    }
+
+    /*
      * Add a final newline.
      *
      */
@@ -80,8 +91,8 @@ char *compute_get_request(char *host, char *url, char *query_params,
 }
 
 char *compute_post_request(char *host, char *url, char* content_type, char **body_data,
-                            int body_data_fields_count, char **cookies, int cookies_count)
-{
+        int body_data_fields_count, char **cookies, int cookies_count, char *auth_token) {
+
     char *message;
     CALLOC(message, BUFLEN);
 
@@ -168,6 +179,17 @@ char *compute_post_request(char *host, char *url, char* content_type, char **bod
 
     }
     /*
+     * Add the authorization token.
+     *
+     */
+    if (auth_token != NULL) {
+        memset(line, 0x00, LINELEN);
+        sprintf(line, "Authorization: Bearer %s", auth_token);
+
+        compute_message(message, line);
+    }
+
+    /*
      * Add a newline at the final of the header.
      */
     compute_message(message, "");
@@ -194,47 +216,3 @@ char *compute_post_request(char *host, char *url, char* content_type, char **bod
 
     return message;
 }
-
-char *add_access_token(char *request, char *jwt_token) {
-    /*
-     * Add guards for input.
-     *
-     */
-    NONVOID_ERROR_HANDLER(request == NULL, "[ERROR] request must be a"
-            " non-null address", request);
-
-    NONVOID_ERROR_HANDLER(jwt_token == NULL, "[ERROR] jwt_token must be a"
-            " non-null address", request);
-    
-    /*
-     * Delete the final \CR\LF from the request.
-     *
-     */
-    request[strlen(request) - 1] = 0x00;
-    request[strlen(request) - 1] = 0x00;
-
-    /*
-     * Add the jwt_token and the final \CR\LF.
-     *
-     */
-    char *access_token;
-    CALLOC(access_token, LINELEN);
-    sprintf(access_token, "Authorization: Bearer %s", jwt_token);
-
-    compute_message(request, access_token);
-    compute_message(request, "");
-
-    /*
-     * Free the memory.
-     *
-     */
-    FREE(access_token);
-
-    return request;
-}
-
-
-
-
-
-

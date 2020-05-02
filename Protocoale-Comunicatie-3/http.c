@@ -17,6 +17,10 @@ char *basic_extract_json_response(char *response) {
     return strstr(response, "{\"");
 }
 
+char *basic_extract_json_list_response(char *response) {
+    return strstr(response, "[");
+}
+
 char *basic_extract_cookie_response(char *response) {
     return strstr(response, SET_COOKIE) + SET_COOKIE_SIZE;
 }

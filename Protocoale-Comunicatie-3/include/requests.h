@@ -11,7 +11,7 @@
  *
  */
 char *compute_get_request(char *host, char *url, char *query_params,
-							char **cookies, int cookies_count);
+							char **cookies, int cookies_count, char *auth_token);
 
 /*
  * Computes a POST request addressed to the @url hosted by @host.
@@ -23,7 +23,7 @@ char *compute_get_request(char *host, char *url, char *query_params,
  *
  */
 char *compute_post_request(char *host, char *url, char* content_type, char **body_data,
-							int body_data_fields_count, char** cookies, int cookies_count);
+		int body_data_fields_count, char** cookies, int cookies_count, char *auth_token);
 
 /*
  * Adds a x-access-token field in the header of the GET request.

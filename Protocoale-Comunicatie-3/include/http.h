@@ -31,8 +31,11 @@ bool contains_status_code(char *response, char *status_code);
 
 char *basic_extract_json_response(char *response);
 
+char *basic_extract_json_list_response(char *response);
+
 char *basic_extract_cookie_response(char *respose);
 
 char *basic_extract_crlf_response(char *response);
+
 
 #endif

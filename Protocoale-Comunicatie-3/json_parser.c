@@ -20,13 +20,13 @@ cJSON *convert_auth_info_to_cJSON(auth_info_t *auth_info,
      * #array_to_cJSON_Object.
      *
      */
-    rigid_json_t json_array_content[REGISTER_ELEM_NO];
+    rigid_json_t json_array_content[AUTH_INFO_ELEMS];
 
     json_array_content[0] = (rigid_json_t) 
         { .name = username, .value = auth_info->username };
     json_array_content[1] = (rigid_json_t) 
         { .name = password, .value = auth_info->password };
 
-    return array_to_cJSON_Object(json_array_content, REGISTER_ELEM_NO);
+    return array_to_cJSON_Object(json_array_content, AUTH_INFO_ELEMS);
 
 }

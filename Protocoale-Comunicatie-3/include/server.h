@@ -22,5 +22,6 @@
 #define LOGIN_URL         "/api/v1/tema/auth/login"
 #define ENTER_LIBRARY_URL "/api/v1/tema/library/access"
 #define GET_BOOKS_URL     "/api/v1/tema/library/books"
+#define ADD_BOOK_URL      "/api/v1/tema/library/books"
 
 #endif

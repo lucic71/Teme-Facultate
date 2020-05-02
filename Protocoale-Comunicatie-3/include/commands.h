@@ -17,11 +17,9 @@
 #define LOGIN         "login"
 #define ENTER_LIBRARY "enter_library"
 #define GET_BOOKS     "get_books"
+#define ADD_BOOK      "add_book"
 #define EXIT          "exit"
 
-
-#define USERNAME "username"
-#define PASSWORD "password"
 
 /*
  * Status codes for all commands listed below.
@@ -68,6 +66,14 @@ int enter_library(int sockfd, char *cookie, char **jwt_token);
  *
  */
 int get_books(int sockfd, char *jwt_token);
+
+
+/*
+ * Using a @jwt_token, send a POST request to the add book URL. The info
+ * about the book will be fed from a prompt.
+ *
+ */
+int add_book(int sockfd, char *jwt_token);
 
 #endif
 
