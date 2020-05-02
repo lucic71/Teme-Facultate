@@ -1,6 +1,8 @@
 #ifndef AUTHENTICATION_H_
 #define AUTHENTICATION_H_
 
+#include <cJSON.h>
+
 #define MAX_USER_SZ    100
 #define MAX_PASS_SZ    100
 
@@ -30,6 +32,12 @@ typedef struct auth_info {
  *
  */
 auth_info_t *get_auth_info();
+
+/*
+ * Convert a auth_info_t object to JSON format.
+ *
+ */
+cJSON *auth_to_json(auth_info_t *auth_info);
 
 /*
  * Frees the memory for a auth_info_t object.

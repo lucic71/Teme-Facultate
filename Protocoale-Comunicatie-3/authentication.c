@@ -5,6 +5,7 @@
 #include <termios.h>
 
 #include <authentication.h>
+#include <cJSON.h>
 #include <error.h>
 #include <memory.h>
 #include <prompt.h>
@@ -27,6 +28,20 @@ auth_info_t *get_auth_info() {
     auth_info->password = password;
 
     return auth_info;
+
+}
+
+cJSON *auth_to_json(auth_info_t *auth_info) {
+
+    cJSON *json_object = cJSON_CreateObject();
+
+    cJSON *username_item = cJSON_CreateString(auth_info->username);
+    cJSON_AddItemToObject(json_object, USERNAME, username_item);
+
+    cJSON *password_item = cJSON_CreateString(auth_info->password);
+    cJSON_AddItemToObject(json_object, PASSWORD, password_item);
+
+    return json_object;
 
 }
 

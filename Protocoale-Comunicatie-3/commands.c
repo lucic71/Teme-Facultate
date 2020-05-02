@@ -10,7 +10,6 @@
 #include <connection.h>
 #include <authentication.h>
 #include <book.h>
-#include <json_parser.h>
 #include <memory.h>
 #include <http.h>
 
@@ -29,7 +28,7 @@ int op_register(int sockfd) {
      * Generate the json payload for the POST request.
      *
      */
-    cJSON *register_json = convert_auth_info_to_cJSON(auth_info, USERNAME, PASSWORD);
+    cJSON *register_json = auth_to_json(auth_info);
 
     /*
      * Convert the JSON object to char array.
@@ -134,7 +133,7 @@ int login(int sockfd, char **cookie) {
      * Generate the json payload for the POST request.
      *
      */
-    cJSON *register_json = convert_auth_info_to_cJSON(auth_info, USERNAME, PASSWORD);
+    cJSON *register_json = auth_to_json(auth_info);
 
     /*
      * Convert the JSON object to char array.
