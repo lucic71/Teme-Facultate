@@ -16,195 +16,194 @@
 #include <server.h>
 
 int op_register(int sockfd) {
-    /*
-     * Display the prompt for username and password and get them.
-     *
-     */
-    auth_info_t *auth_info = get_auth_info();
-    NONVOID_ERROR_HANDLER(auth_info == NULL, "[ERROR] Could not get auth_info",
-            OPERATION_FAILED);
+    auth_info_t *auth_info     = NULL;
+    cJSON *register_json       = NULL;
+    char *register_json_string = NULL;
+    char *request              = NULL;
+    char *response             = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
 
     /*
-     * Generate the json payload for the POST request.
+     * Get the authentication info.
      *
      */
-    cJSON *register_json = auth_to_json(auth_info);
+    auth_info = get_auth_info();
+    if (auth_info == NULL) {
+        ERROR(AUTH_INFO_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto op_register_end;
+    }
 
     /*
-     * Convert the JSON object to char array.
+     * Generate the json payload for the POST request. And convert
+     * the JSON object to a string.
      *
      */
-    char *register_json_string = cJSON_Print(register_json);
+    register_json        = auth_to_json(auth_info);
+    register_json_string = cJSON_Print(register_json);
 
     /*
-     * Generate the POST request. If the post request computation fails then
-     * an all the memory allocated previously will be FREEd and the function
-     * will return a OPERATION_FAILED error code.
+     * Generate the POST request.
      *
      */
-    char *post_request = compute_post_request(SERVER, REGISTER_URL, 
+    request = compute_post_request(SERVER, REGISTER_URL, 
             JSON_CONTENT_TYPE, &register_json_string, 1, NULL, 0, NULL);
 
-    if (post_request == NULL) {
-        cJSON_Delete(register_json);
-        delete_auth_info(auth_info);
+    if (request == NULL) {
+        ERROR(POST_ERROR);
 
-        FREE(register_json_string);
-
-        NONVOID_ERROR_HANDLER(post_request == NULL, "[ERROR] Could not build POST request",
-            OPERATION_FAILED);
+        return_status = OPERATION_FAILED;
+        goto op_register_end;
     }
 
     /*
-     * Send the POST request to the server and print the response.
-     * If the post request computation fails then an all the memory allocated 
-     * previously will be FREEd and the function will return a OPERATION_FAILED error code.
+     * Send the request.
      *
      */
-    int send_to_server_ret = send_to_server(sockfd, post_request);
+    int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        cJSON_Delete(register_json);
-        delete_auth_info(auth_info);
+        ERROR(SEND_ERROR);
 
-        FREE(register_json_string);
-        FREE(post_request);
-
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Could not send request to server",
-                OPERATION_FAILED);
-    }
-
-    /*
-     * Receive a response. If #receive_from_server returns NULL it means an error occured
-     * and the register operation was not successful.
-     *
-     */
-    char *response = receive_from_server(sockfd);
-    if (response == NULL || contains_status_code(response, BAD_REQUEST)) {
-        cJSON_Delete(register_json);
-        delete_auth_info(auth_info);
-
-        FREE(register_json_string);
-        FREE(post_request);
-
-        /*
-         * Decide what status code to return and what error code to print.
-         *
-         */
-        if (response == NULL) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Could not receive a response from server",
-                    OPERATION_CONNECTION_CLOSED);
-        } else if (contains_status_code(response, BAD_REQUEST)) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Bad request",
-                    OPERATION_FAILED);
-        }
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto op_register_end;
 
     }
 
-    puts(response);
-
     /*
-     * FREE the memory.
+     * Receive the response.
      *
      */
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto op_register_end;
+    }
+
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(REGISTER_FAIL);
+
+        return_status = OPERATION_FAILED;
+        goto op_register_end;
+
+    }
+
+    puts(REGISTER_SUCCESS);
+
+op_register_end:
+
     delete_auth_info(auth_info);
-
     cJSON_Delete(register_json);
-    FREE(register_json_string);
 
-    FREE(post_request);
+    FREE(register_json_string);
+    FREE(request);
     FREE(response);
 
-    return OPERATION_SUCCESSFUL;
+    return return_status;
 }
 
 int login(int sockfd, char **cookie) {
-    NONVOID_ERROR_HANDLER(cookie == NULL, "[ERROR] Cookie argument must be"
-            " a valid address", OPERATION_FAILED);
+
+    auth_info_t *auth_info         = NULL;
+    cJSON       *login_json        = NULL;
+    char        *login_json_string = NULL;
+    char        *request           = NULL;
+    char        *response          = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
 
     /*
-     * Display the prompt for username and password and get them.
+     * Guard for input.
      *
      */
-    auth_info_t *auth_info = get_auth_info();
-    NONVOID_ERROR_HANDLER(auth_info == NULL, "[ERROR] Could not get auth_info",
-            OPERATION_FAILED);
+    if (cookie == NULL) {
+        ERROR(COOKIE_ERROR);
 
-    /*
-     * Generate the json payload for the POST request.
-     *
-     */
-    cJSON *register_json = auth_to_json(auth_info);
-
-    /*
-     * Convert the JSON object to char array.
-     *
-     */
-    char *register_json_string = cJSON_Print(register_json);
-
-    /*
-     * Generate the POST request. If the post request computation fails then
-     * an all the memory allocated previously will be FREEd and the function
-     * will return a OPERATION_FAILED error code.
-     *
-     */
-    char *post_request = compute_post_request(SERVER, LOGIN_URL, 
-            JSON_CONTENT_TYPE, &register_json_string, 1, NULL, 0, NULL);
-
-    if (post_request == NULL) {
-        cJSON_Delete(register_json);
-        delete_auth_info(auth_info);
-
-        FREE(register_json_string);
-
-        NONVOID_ERROR_HANDLER(post_request == NULL, "[ERROR] Could not build POST request",
-            OPERATION_FAILED);
+        return_status = OPERATION_FAILED;
+        goto login_end;
     }
 
     /*
-     * Send the POST request to the server and print the response.
-     * If the post request computation fails then an all the memory allocated 
-     * previously will be FREEd and the function will return a OPERATION_FAILED error code.
+     * If there is already an active session then the user must
+     * firstly logout before it wants to login.
      *
      */
-    int send_to_server_ret = send_to_server(sockfd, post_request);
+    if (*cookie != NULL) {
+        ERROR(ACTIVE_COOKIE_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto login_end;
+    }
+
+    /*
+     * Get auth info.
+     *
+     */
+    auth_info = get_auth_info();
+    if (auth_info == NULL) {
+        ERROR(AUTH_INFO_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto login_end;
+    }
+
+
+    /*
+     * Generate the json payload for the POST request. And convert
+     * the JSON object to a string.
+     *
+     */
+    login_json        = auth_to_json(auth_info);
+    login_json_string = cJSON_Print(login_json);
+
+    /*
+     * Generate the POST request.
+     *
+     */
+    request = compute_post_request(SERVER, LOGIN_URL, 
+            JSON_CONTENT_TYPE, &login_json_string, 1, NULL, 0, NULL);
+
+    if (request == NULL) {
+        ERROR(POST_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto login_end;
+    }
+
+    /*
+     * Send the request.
+     *
+     */
+    int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        cJSON_Delete(register_json);
-        delete_auth_info(auth_info);
+        ERROR(SEND_ERROR);
 
-        FREE(register_json_string);
-        FREE(post_request);
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto login_end;
 
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Could not send request to server",
-                OPERATION_FAILED);
     }
 
     /*
-     * Receive a response. If #receive_from_server returns NULL it means an error occured
-     * and the login operation was not successful.
-     *
-     * Also if the response contains a BAD_REQUEST status code then the response is
-     * not valid.
+     * Receive the response.
      *
      */
-    char *response = receive_from_server(sockfd);
-    if (response == NULL || contains_status_code(response, BAD_REQUEST)) {
-        cJSON_Delete(register_json);
-        delete_auth_info(auth_info);
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
 
-        FREE(register_json_string);
-        FREE(post_request);
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto login_end;
+    }
 
-        /*
-         * Decide what status code to return and what error code to print.
-         *
-         */
-        if (response == NULL) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Could not receive a response from server",
-                    OPERATION_CONNECTION_CLOSED);
-        } else if (contains_status_code(response, BAD_REQUEST)) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Bad request",
-                    OPERATION_FAILED);
-        }
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(LOGIN_FAIL);
+
+        return_status = OPERATION_FAILED;
+        goto login_end;
+
     }
 
     /*
@@ -219,92 +218,99 @@ int login(int sockfd, char **cookie) {
     CALLOC(*cookie, strlen(cookie_line) + 1);
     strcpy(*cookie, cookie_line);
 
-    /*
-     * FREE the memory.
-     *
-     */
+    puts(LOGIN_SUCCESS);
+
+login_end:
+
     delete_auth_info(auth_info);
+    cJSON_Delete(login_json);
 
-    cJSON_Delete(register_json);
-    FREE(register_json_string);
-
-    FREE(post_request);
+    FREE(login_json_string);
+    FREE(request);
     FREE(response);
 
-    return OPERATION_SUCCESSFUL;
+    return return_status;
 }
 
 int enter_library(int sockfd, char *cookie, char **jwt_token) {
 
-    /*
-     * Put guards on @cookie and @jwt_token before beginning this operation.
-     *
-     */
-    NONVOID_ERROR_HANDLER(cookie == NULL, "[ERROR] cookie must be a"
-            " non-null address", OPERATION_FAILED);
+    char *request  = NULL;
+    char *response = NULL;
 
-    NONVOID_ERROR_HANDLER(jwt_token == NULL, "[ERROR] jwt_token must be a"
-            " non-null address", OPERATION_FAILED);
+    cJSON *json_received_object = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
 
     /*
-     * Compute a get request using the @cookie.
+     * Guard for input.
      *
      */
-    char *get_request = compute_get_request(SERVER, ENTER_LIBRARY_URL, NULL, &cookie, 1, NULL);
-    NONVOID_ERROR_HANDLER(get_request == NULL, "[ERROR] Could not build GET request",
-            OPERATION_FAILED);
+    if (cookie == NULL) {
+        ERROR(COOKIE_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto enter_library_end;
+    }
+
+    if (jwt_token == NULL) {
+        ERROR(JWT_TOKEN_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto enter_library_end;
+    }
 
     /*
-     * Send the POST request to the server and print the response.
-     * If the post request computation fails then an all the memory allocated 
-     * previously will be FREEd and the function will return a OPERATION_FAILED error code.
+     * Generate the GET request using the @cookie.
      *
      */
-    int send_to_server_ret = send_to_server(sockfd, get_request);
+    request = compute_get_request(SERVER, ENTER_LIBRARY_URL, NULL, &cookie, 1, NULL);
+    if (request == NULL) {
+        ERROR(GET_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto enter_library_end;
+    }
+
+    /*
+     * Send the request.
+     *
+     */
+    int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        FREE(get_request);
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Could not send request to server",
-                OPERATION_FAILED);
+        ERROR(SEND_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto enter_library_end;
+
     }
 
     /*
-     * Receive a response. If #receive_from_server returns NULL it means an error occured
-     * and the login operation was not successful.
-     *
-     * Also if the response contains a BAD_REQUEST status code then the response is
-     * not valid.
+     * Receive the response.
      *
      */
-    char *response = receive_from_server(sockfd);
-    if (response == NULL || contains_status_code(response, BAD_REQUEST)) {
-        FREE(get_request);
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
 
-        /*
-         * Decide what status code to return and what error code to print.
-         *
-         */
-        if (response == NULL) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Could not receive a response from server",
-                    OPERATION_CONNECTION_CLOSED);
-        } else if (contains_status_code(response, BAD_REQUEST)) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Bad request",
-                    OPERATION_FAILED);
-        }
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto enter_library_end;
     }
 
-    char *json_body = basic_extract_json_response(response);
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(ENTER_LIBRARY_FAIL);
+
+        return_status = OPERATION_FAILED;
+        goto enter_library_end;
+
+    }
 
     /*
      * Parse the JWT token received in the HTTP response.
      *
      */
-    cJSON *json_received_object = cJSON_Parse(json_body);
-    if (json_received_object == NULL) {
-        FREE(get_request);
-        FREE(response);
+    char *json_body = basic_extract_json_response(response);
 
-        NONVOID_ERROR_HANDLER(true, cJSON_GetErrorPtr(), OPERATION_FAILED);
-    }
+    json_received_object = cJSON_Parse(json_body);
 
     cJSON *cJSON_token = cJSON_GetObjectItemCaseSensitive(json_received_object,
             JWT_TOKEN);
@@ -316,180 +322,453 @@ int enter_library(int sockfd, char *cookie, char **jwt_token) {
     CALLOC(*jwt_token, strlen(cJSON_token->valuestring) + 1);
     strcpy(*jwt_token, cJSON_token->valuestring);
 
-    /*
-     * FREE the memory.
-     *
-     */
+    puts(ENTER_LIBRARY_SUCCESS);
+
+enter_library_end:
+
     cJSON_Delete(json_received_object);
 
-    FREE(get_request);
+    FREE(request);
     FREE(response);
 
-    return OPERATION_SUCCESSFUL;
+    return return_status;
 }
 
 int get_books(int sockfd, char *jwt_token) {
+    char *request  = NULL;
+    char *response = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
+
     /*
      * Guard for input.
      *
      */
-    NONVOID_ERROR_HANDLER(jwt_token == NULL, "[ERROR] jwt_token must be a"
-            " non-null address", OPERATION_FAILED);
+    if (jwt_token == NULL) {
+        ERROR(JWT_TOKEN_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto get_books_end;
+    }
 
     /*
      * Add the jwt token to the GET request.
      *
      */
-    char *get_request = compute_get_request(SERVER, GET_BOOKS_URL, NULL, NULL, 0, jwt_token);
-    if (get_request == NULL) {
-        NONVOID_ERROR_HANDLER(get_request == NULL, "[ERROR] Could not build POST request",
-            OPERATION_FAILED);
+    request = compute_get_request(SERVER, GET_BOOKS_URL, NULL, NULL, 0, jwt_token);
+    if (request == NULL) {
+        ERROR(GET_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto get_books_end;
     }
 
     /*
-     * Send the POST request to the server and print the response.
-     * If the post request computation fails then an all the memory allocated 
-     * previously will be FREEd and the function will return a OPERATION_FAILED error code.
+     * Send the request.
      *
      */
-    int send_to_server_ret = send_to_server(sockfd, get_request);
+    int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        FREE(get_request);
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Could not send request to server",
-                OPERATION_FAILED);
+        ERROR(SEND_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto get_books_end;
+
     }
 
     /*
-     * Receive a response. If #receive_from_server returns NULL it means an error occured
-     * and the login operation was not successful.
-     *
-     * Also if the response contains a BAD_REQUEST status code then the response is
-     * not valid.
+     * Receive the response.
      *
      */
-    char *response = receive_from_server(sockfd);
-    if (response == NULL || contains_status_code(response, BAD_REQUEST)
-            || contains_status_code(response, FORBIDDEN)) {
-        FREE(get_request);
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
 
-        /*
-         * Decide what status code to return and what error code to print.
-         *
-         */
-        if (response == NULL) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Could not receive a response from server",
-                    OPERATION_CONNECTION_CLOSED);
-        } else if (contains_status_code(response, BAD_REQUEST)) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Bad request",
-                    OPERATION_FAILED);
-        } else if (contains_status_code(response, FORBIDDEN)) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Forbidden",
-                    OPERATION_FAILED);
-        }
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto get_books_end;
     }
 
-    puts(basic_extract_json_list_response(response));
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(GET_BOOKS_FAIL);
 
-    /*
-     * FREE the memory.
-     *
-     */
-    FREE(get_request);
+        return_status = OPERATION_FAILED;
+        goto get_books_end;
+
+    }
+
+    print_json_book_list(basic_extract_json_list_response(response));
+
+get_books_end:
+
+    FREE(request);
     FREE(response);
 
-    return OPERATION_SUCCESSFUL;
+    return return_status;
 }
 
-int add_book(int sockfd, char *jwt_token) {
+int get_book(int sockfd, char *jwt_token) {
+
+    book_id_t *book_id = NULL;
+    char *book_url     = NULL;
+
+    char *request  = NULL;
+    char *response = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
+
     /*
      * Guard for input.
      *
      */
-    NONVOID_ERROR_HANDLER(jwt_token == NULL, "[ERROR] jwt_token must be a"
-            " non-null address", OPERATION_FAILED);
+    if (jwt_token == NULL) {
+        ERROR(JWT_TOKEN_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto get_book_end;
+    }
+    
+    /*
+     * Get the ID from user.
+     *
+     */
+    book_id = get_book_id();
+
+    /*
+     * Add the jwt token to the GET request. Add the book id to URL.
+     *
+     */
+    CALLOC(book_url, sizeof(GET_BOOKS_URL) - 1 + strlen("/") + strlen(book_id->id) + 1);
+    sprintf(book_url, "%s/%s", GET_BOOKS_URL, book_id->id);
+
+    request = compute_get_request(SERVER, book_url, NULL, NULL, 0, jwt_token);
+    if (request == NULL) {
+        ERROR(GET_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto get_book_end;
+    }
+
+    /*
+     * Send the request.
+     *
+     */
+    int send_to_server_ret = send_to_server(sockfd, request);
+    if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
+        ERROR(SEND_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto get_book_end;
+
+    }
+
+    /*
+     * Receive the response.
+     *
+     */
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto get_book_end;
+    }
+
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(GET_BOOK_FAIL);
+
+        return_status = OPERATION_FAILED;
+        goto get_book_end;
+
+    }
+
+    print_json_book(basic_extract_json_list_response(response));
+
+get_book_end:
+
+    delete_book_id(book_id);
+    FREE(book_url);
+
+    FREE(request);
+    FREE(response);
+
+    return return_status;
+
+}
+
+
+int add_book(int sockfd, char *jwt_token) {
+
+    book_info_t *book_info        = NULL;
+    cJSON       *book_json        = NULL;
+    char        *book_json_string = NULL;
+    char        *request          = NULL;
+    char        *response         = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
+
+    /*
+     * Guard for input.
+     *
+     */
+    if (jwt_token == NULL) {
+        ERROR(JWT_TOKEN_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto add_book_end;
+    }
 
     /*
      * Get book info.
      *
      */
-    book_info_t *book_info = get_book_info();
-    NONVOID_ERROR_HANDLER(book_info == NULL, "[ERROR] Could not get book_info",
-            OPERATION_FAILED);
+    book_info = get_book_info();
+    if (book_info == NULL) {
+        ERROR("Could not get book info");
+
+        return_status = OPERATION_FAILED;
+        goto add_book_end;
+    }
 
     /*
      * Generate the payload for the POST request.
      *
      */
-    cJSON *book_json = book_to_json(book_info);
-    char *book_json_string = cJSON_Print(book_json);
+    book_json = book_to_json(book_info);
+    book_json_string = cJSON_Print(book_json);
 
     /*
      * Generate the POST request.
      *
      */
-    char *post_request = compute_post_request(SERVER, ADD_BOOK_URL,
+    request = compute_post_request(SERVER, ADD_BOOK_URL,
         JSON_CONTENT_TYPE, &book_json_string, 1, NULL, 0, jwt_token);
 
-    if (post_request == NULL) {
-        cJSON_Delete(book_json);
-        delete_book_info(book_info);
+    if (request == NULL) {
+        ERROR(POST_ERROR);
 
-        FREE(book_json_string);
-
-        NONVOID_ERROR_HANDLER(post_request == NULL, "[ERROR] Could not build POST request",
-            OPERATION_FAILED);
+        return_status = OPERATION_FAILED;
+        goto add_book_end;
     }
 
     /*
      * Send POST request.
      *
      */
-    int send_to_server_ret = send_to_server(sockfd, post_request);
+    int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        cJSON_Delete(book_json);
-        delete_book_info(book_info);
+        ERROR(SEND_ERROR);
 
-        FREE(book_json_string);
-        FREE(post_request);
-
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Could not send request to server",
-                OPERATION_FAILED);
+        return_status = OPERATION_FAILED;
+        goto add_book_end;
     }
-
 
     /*
-     * Receive a response. If #receive_from_server returns NULL it means an error occured
-     * and the login operation was not successful.
-     *
-     * Also if the response contains a BAD_REQUEST status code then the response is
-     * not valid.
+     * Receive the response.
      *
      */
-    char *response = receive_from_server(sockfd);
-    if (response == NULL || contains_status_code(response, BAD_REQUEST)) {
-        cJSON_Delete(book_json);
-        delete_book_info(book_info);
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
 
-        FREE(book_json_string);
-        FREE(post_request);
-
-        /*
-         * Decide what status code to return and what error code to print.
-         *
-         */
-        if (response == NULL) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Could not receive a response from server",
-                    OPERATION_CONNECTION_CLOSED);
-        } else if (contains_status_code(response, BAD_REQUEST)) {
-            NONVOID_ERROR_HANDLER(true, "[ERROR] Bad request",
-                    OPERATION_FAILED);
-        }
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto add_book_end;
     }
 
-    puts("Book added successfully");
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(ADD_BOOK_FAIL);
 
-    return OPERATION_SUCCESSFUL;
+        return_status = OPERATION_FAILED;
+        goto add_book_end;
+    }
+
+    puts(ADD_BOOK_SUCCESS);
+
+add_book_end:
+
+    delete_book_info(book_info);
+    cJSON_Delete(book_json);
+
+    FREE(book_json_string);
+    FREE(request);
+    FREE(response);
+
+    return return_status;
+
 }
+
+int delete_book(int sockfd, char *jwt_token) {
+
+    book_id_t *book_id = NULL;
+    char     *book_url = NULL;
+
+    char *request  = NULL;
+    char *response = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
+
+    /*
+     * Guard for input.
+     *
+     */
+    if (jwt_token == NULL) {
+        ERROR(JWT_TOKEN_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto delete_book_end;
+    }
+    
+    /*
+     * Get the ID from user.
+     *
+     */
+    book_id = get_book_id();
+
+    /*
+     * Add the jwt token to the DELETE request. Add the book id to URL.
+     *
+     */
+    CALLOC(book_url, sizeof(DELETE_BOOK_URL) - 1 + strlen("/") + strlen(book_id->id) + 1);
+    sprintf(book_url, "%s/%s", DELETE_BOOK_URL, book_id->id);
+
+    request = compute_delete_request(SERVER, book_url, NULL, NULL, 0, jwt_token);
+    if (request == NULL) {
+        ERROR(DELETE_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto delete_book_end;
+    }
+
+    /*
+     * Send the request.
+     *
+     */
+    int send_to_server_ret = send_to_server(sockfd, request);
+    if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
+        ERROR(SEND_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto delete_book_end;
+
+    }
+
+    /*
+     * Receive the response.
+     *
+     */
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto delete_book_end;
+    }
+
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(DELETE_BOOK_FAIL);
+
+        return_status = OPERATION_FAILED;
+        goto delete_book_end;
+
+    }
+
+    puts(DELETE_BOOK_SUCCESS);
+
+delete_book_end:
+
+    delete_book_id(book_id);
+    FREE(book_url);
+
+    FREE(request);
+    FREE(response);
+
+    return return_status;
+
+}
+
+
+int logout(int sockfd, char *cookie) {
+
+    char *request  = NULL;
+    char *response = NULL;
+
+    int return_status = OPERATION_SUCCESSFUL;
+
+    /*
+     * Guard for input.
+     *
+     */
+    if (cookie == NULL) {
+        ERROR(COOKIE_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto logout_end;
+    }
+
+    /*
+     * Generate the GET request using the @cookie.
+     *
+     */
+    request = compute_get_request(SERVER, LOGOUT_URL, NULL, &cookie, 1, NULL);
+    if (request == NULL) {
+        ERROR(GET_ERROR);
+
+        return_status = OPERATION_FAILED;
+        goto logout_end;
+    }
+
+    /*
+     * Send the request.
+     *
+     */
+    int send_to_server_ret = send_to_server(sockfd, request);
+    if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
+        ERROR(SEND_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto logout_end;
+
+    }
+
+    /*
+     * Receive the response.
+     *
+     */
+    response = receive_from_server(sockfd);
+    if (response == NULL) {
+        ERROR(RECV_ERROR);
+
+        return_status = OPERATION_CONNECTION_CLOSED;
+        goto logout_end;
+    }
+
+    if (!contains_status_code(response, SUCCESS)) {
+        ERROR(LOGOUT_FAIL);
+
+        return_status = OPERATION_FAILED;
+        goto logout_end;
+
+    }
+
+    puts(LOGOUT_SUCCESS);
+
+logout_end:
+
+    FREE(response);
+    FREE(request);
+
+    return return_status;
+
+}
+
+
+
+
+
+
+
+
+
+
 
 
 

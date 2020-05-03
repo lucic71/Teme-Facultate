@@ -15,8 +15,7 @@
 #include <memory.h>
 
 char *compute_get_request(char *host, char *url, char *query_params,
-                            char **cookies, int cookies_count, char *auth_token)
-{
+                            char **cookies, int cookies_count, char *auth_token) {
     char *message;
     CALLOC(message, BUFLEN);
 
@@ -41,6 +40,81 @@ char *compute_get_request(char *host, char *url, char *query_params,
         FREE(line);
 
         NONVOID_ERROR_HANDLER(true, "[ERROR] Add a host to GET request", NULL);
+    }
+
+    memset(line, 0x00, LINELEN);
+    sprintf(line, "Host: %s", host);
+
+    compute_message(message, line);
+
+    /*
+     * Add headers and/or cookies, according to the protocol format
+     *
+     */
+    if (cookies != NULL) {
+
+        memset(line, 0x00, LINELEN);
+        sprintf(line, "Cookie: %s", cookies[0]);
+
+        for (size_t i = 1; i < cookies_count; i++) {
+            sprintf(line, "%s; %s", line, cookies[i]);
+        }
+
+        compute_message(message, line);
+       
+    }
+
+    /*
+     * Add the authorization token.
+     *
+     */
+    if (auth_token != NULL) {
+        memset(line, 0x00, LINELEN);
+        sprintf(line, "Authorization: Bearer %s", auth_token);
+
+        compute_message(message, line);
+    }
+
+    /*
+     * Add a final newline.
+     *
+     */
+    compute_message(message, "");
+
+    /*
+     * FREE the memory and return.
+     *
+     */
+    FREE(line);
+    return message;
+}
+
+char *compute_delete_request(char *host, char *url, char *query_params,
+                            char **cookies, int cookies_count, char *auth_token) {
+    char *message;
+    CALLOC(message, BUFLEN);
+
+    char *line;
+    CALLOC(line, LINELEN);
+
+    /*
+     * Append queries to the first line of the request.
+     *
+     */
+    if (query_params != NULL) {
+        sprintf(line, "DELETE %s?%s HTTP/1.1", url, query_params);
+    } else {
+        sprintf(line, "DELETE %s HTTP/1.1", url);
+    }
+
+    compute_message(message, line);
+
+    if (host == NULL) {
+           
+        FREE(message);
+        FREE(line);
+
+        NONVOID_ERROR_HANDLER(true, "[ERROR] Add a host to DELETE request", NULL);
     }
 
     memset(line, 0x00, LINELEN);

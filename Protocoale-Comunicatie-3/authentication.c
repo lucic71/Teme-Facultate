@@ -14,8 +14,12 @@ auth_info_t *get_auth_info() {
     char *username = read_item(USERNAME, MAX_USER_SZ, ECHO_ON);
     char *password = read_item(PASSWORD, MAX_PASS_SZ, ECHO_OFF);
 
-    NONVOID_ERROR_HANDLER(username == NULL, "[ERROR] Could not read username", NULL);
-    NONVOID_ERROR_HANDLER(password == NULL, "[ERROR] Could not read password", NULL);
+    if (username == NULL || password == NULL) {
+        FREE(username);
+        FREE(password);
+
+        return NULL;
+    }
 
     /*
      * Declare the return variable.
@@ -46,6 +50,10 @@ cJSON *auth_to_json(auth_info_t *auth_info) {
 }
 
 void delete_auth_info(auth_info_t *auth_info) {
+
+    if (auth_info == NULL) {
+        return;
+    }
 
     FREE(auth_info->username);
     FREE(auth_info->password);

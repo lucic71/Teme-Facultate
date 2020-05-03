@@ -17,7 +17,10 @@
 #define LOGIN         "login"
 #define ENTER_LIBRARY "enter_library"
 #define GET_BOOKS     "get_books"
+#define GET_BOOK      "get_book"
 #define ADD_BOOK      "add_book"
+#define DELETE_BOOK   "delete_book"
+#define LOGOUT        "logout"
 #define EXIT          "exit"
 
 
@@ -67,6 +70,17 @@ int enter_library(int sockfd, char *cookie, char **jwt_token);
  */
 int get_books(int sockfd, char *jwt_token);
 
+/*
+ * Using a @jwt_token, send a GET request to the library URL and print the
+ * info about the book.
+ *
+ */
+
+/*
+ * These macros are used when reading the input from user.
+ *
+ */
+int get_book(int sockfd, char *jwt_token);
 
 /*
  * Using a @jwt_token, send a POST request to the add book URL. The info
@@ -74,6 +88,19 @@ int get_books(int sockfd, char *jwt_token);
  *
  */
 int add_book(int sockfd, char *jwt_token);
+
+/*
+ * Using a @jwt_token, send a DELETE request to the add book URL. The info
+ * about the book will be fed from a prompt.
+ *
+ */
+int delete_book(int sockfd, char *jwt_token);
+
+/*
+ * Logs out using the @cookie.
+ *
+ */
+int logout(int sockfd, char *cookie);
 
 #endif
 

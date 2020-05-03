@@ -14,6 +14,18 @@ char *compute_get_request(char *host, char *url, char *query_params,
 							char **cookies, int cookies_count, char *auth_token);
 
 /*
+ * Computes a DELETE request addressed to the @url hosted by @host.
+ *
+ * @query_params and @cookies can be set to NULL if not needed.
+ *
+ * @return: a char array containing the DELETE request.
+ *          NULL if the operation faield (input was invalid)
+ *
+ */
+char *compute_delete_request(char *host, char *url, char *query_params,
+							char **cookies, int cookies_count, char *auth_token);
+
+/*
  * Computes a POST request addressed to the @url hosted by @host.
  *
  * @cookies can be set to NULL if not needed.

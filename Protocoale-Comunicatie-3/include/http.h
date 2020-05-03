@@ -9,8 +9,11 @@
  */
 #define JWT_TOKEN "token"
 
-#define BAD_REQUEST "400"
-#define FORBIDDEN   "403"
+/*
+ * Status codes received in HTTP responses.
+ *
+ */
+#define SUCCESS     "200 OK"
 
 /*
  * Function that checks if HTTP @response contains @status_code.

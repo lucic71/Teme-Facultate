@@ -10,6 +10,10 @@
 #include <memory.h>
 #include <commands.h>
 
+/*
+ * TODO: do not forget to test the return value of sockfd.
+ *
+ */
 #define RESTORE_SOCKFD(assertion, sockfd, server_ip) \
     do {    \
         if (assertion) {    \
@@ -21,6 +25,7 @@
 
 
 int main() {
+
     /*
      * Get the IP of the server.
      *
@@ -78,13 +83,6 @@ int main() {
 
         } else if (strncmp(input_buffer, LOGIN, sizeof(LOGIN) - 1) == 0) {
             
-            /*
-             * If a cookie was already stored in the @cookie then
-             * delete it because a new login will generate a new cookie.
-             *
-             */
-            FREE(cookie);
-
             int login_ret = login(sockfd, &cookie);
             RESTORE_SOCKFD(login_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
@@ -121,12 +119,35 @@ int main() {
             RESTORE_SOCKFD(get_books_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
+        } else if (strncmp(input_buffer, GET_BOOK, sizeof(GET_BOOK) - 1) == 0) {
+
+            int get_book_ret = get_book(sockfd, jwt_token);
+            RESTORE_SOCKFD(get_book_ret == OPERATION_CONNECTION_CLOSED, 
+                    sockfd, server_ip);
+
         } else if (strncmp(input_buffer, ADD_BOOK, sizeof(ADD_BOOK) - 1) == 0) {
 
             int add_book_ret = add_book(sockfd, jwt_token);
             RESTORE_SOCKFD(add_book_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
+
+        } else if (strncmp(input_buffer, DELETE_BOOK, sizeof(DELETE_BOOK) - 1) == 0) {
+
+            int delete_book_ret = delete_book(sockfd, jwt_token);
+            RESTORE_SOCKFD(delete_book_ret == OPERATION_CONNECTION_CLOSED, 
+                    sockfd, server_ip);
         
+        } else if (strncmp(input_buffer, LOGOUT, sizeof(LOGOUT) - 1) == 0) {
+
+            int logout_ret = logout(sockfd, cookie);
+            RESTORE_SOCKFD(logout_ret == OPERATION_CONNECTION_CLOSED, 
+                    sockfd, server_ip);
+
+            // delete the cookie if the operation was successful
+            if (logout_ret == OPERATION_SUCCESSFUL) {
+                FREE(cookie);
+            }
+
         } else if (strncmp(input_buffer, EXIT, sizeof(EXIT) - 1) == 0) {
 
             puts("[DEBUG] Closing the connection with the server, goodbye.");

@@ -20,20 +20,28 @@ book_info_t *get_book_info() {
     char *page_count = read_item(PAGE_COUNT, MAX_BOOK_ELEM_SIZE, ECHO_ON);
     char *publisher  = read_item(PUBLISHER, MAX_BOOK_ELEM_SIZE, ECHO_ON);
 
-    NONVOID_ERROR_HANDLER(title == NULL, "[ERROR] Could not read title", NULL);
-    NONVOID_ERROR_HANDLER(author == NULL, "[ERROR] Could not read author", NULL);
-    NONVOID_ERROR_HANDLER(genre == NULL, "[ERROR] Could not read genre", NULL);
-    NONVOID_ERROR_HANDLER(page_count == NULL, "[ERROR] Could not read page_count", NULL);
-    NONVOID_ERROR_HANDLER(publisher == NULL, "[ERROR] Could not read publisher", NULL);
+    if (title == NULL || author == NULL || genre == NULL || page_count == NULL
+            || publisher == NULL) {
+
+        FREE(title);
+        FREE(author);
+        FREE(genre);
+        FREE(page_count);
+        FREE(publisher);
+
+        return NULL;
+
+    }
 
     /*
-     * Convert page_count to int.
+     * Convert page_count to int and delete page_count.
      *
      */
     int *page_count_integer;
     CALLOC(page_count_integer, sizeof(int));
 
     sscanf(page_count, "%d", page_count_integer);
+    FREE(page_count);
 
     /*
      * Build the book_info_t data type.
@@ -49,6 +57,28 @@ book_info_t *get_book_info() {
     book_info->publisher  = publisher;
 
     return book_info;
+}
+
+book_id_t *get_book_id() {
+
+    char *id = read_item(ID, MAX_BOOK_ID_ELEM_SIZE, ECHO_ON);
+
+    if (id == NULL) {
+        FREE(id);
+
+        return NULL;
+    }
+
+    /*
+     * Build the book_id_t data type.
+     *
+     */
+    book_id_t *book_id;
+    CALLOC(book_id, sizeof(book_id));
+
+    book_id->id = id;
+    return book_id;
+
 }
 
 cJSON *book_to_json(book_info_t *book_info) {
@@ -78,6 +108,10 @@ cJSON *book_to_json(book_info_t *book_info) {
 
 void delete_book_info(book_info_t *book_info) {
 
+    if (book_info == NULL) {
+        return;
+    }
+
     FREE(book_info->title);
     FREE(book_info->author);
     FREE(book_info->genre);
@@ -87,3 +121,84 @@ void delete_book_info(book_info_t *book_info) {
     FREE(book_info);
 
 }
+
+void delete_book_id(book_id_t *book_id) {
+
+    if (book_id == NULL) {
+        return;
+    }
+
+    FREE(book_id->id);
+    FREE(book_id);
+
+}
+
+void print_json_book_list(char *book_list_string) {
+
+    cJSON *book_list = cJSON_Parse(book_list_string);
+    cJSON *book      = NULL;
+
+    cJSON_ArrayForEach(book, book_list) {
+
+        cJSON *title  = cJSON_GetObjectItemCaseSensitive(book, TITLE);
+        cJSON *id     = cJSON_GetObjectItemCaseSensitive(book, ID);
+
+        char *title_string = cJSON_Print(title);
+        char *id_string = cJSON_Print(id);
+
+        printf("\n%s: %s\n"
+               "%s: %s\n\n",
+               TITLE, title_string,
+               ID,    id_string);
+
+        FREE(title_string);
+        FREE(id_string);
+    }
+
+    cJSON_Delete(book_list);
+
+}
+
+void print_json_book(char *book_string) {
+
+    cJSON *books = cJSON_Parse(book_string);
+    cJSON *book  = NULL;
+
+    cJSON_ArrayForEach(book, books) {
+
+        cJSON *title       = cJSON_GetObjectItemCaseSensitive(book, TITLE);
+        cJSON *author      = cJSON_GetObjectItemCaseSensitive(book, AUTHOR);
+        cJSON *genre       = cJSON_GetObjectItemCaseSensitive(book, GENRE);
+        cJSON *page_count  = cJSON_GetObjectItemCaseSensitive(book, PAGE_COUNT);
+        cJSON *publisher   = cJSON_GetObjectItemCaseSensitive(book, PUBLISHER);
+
+        char *title_string      = cJSON_Print(title);
+        char *author_string     = cJSON_Print(author);
+        char *genre_string      = cJSON_Print(genre);
+        char *page_count_string = cJSON_Print(page_count);
+        char *publisher_string  = cJSON_Print(publisher);
+
+        printf("\n%s: %s\n"
+               "%s: %s\n"
+               "%s: %s\n"
+               "%s: %s\n"
+               "%s: %s\n",
+               TITLE,      title_string,
+               AUTHOR,     author_string,
+               GENRE,      genre_string,
+               PAGE_COUNT, page_count_string,
+               PUBLISHER,  publisher_string);
+
+        FREE(title_string);
+        FREE(author_string);
+        FREE(genre_string);
+        FREE(page_count_string);
+        FREE(publisher_string);
+
+    }
+
+    cJSON_Delete(books);
+
+}
+
+
