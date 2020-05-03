@@ -11,18 +11,19 @@
 #include <commands.h>
 
 /*
- * TODO: do not forget to test the return value of sockfd.
+ * This macro to make a stable connection with the server.
  *
  */
 #define RESTORE_SOCKFD(assertion, sockfd, server_ip) \
     do {    \
         if (assertion) {    \
-            puts("[DEBUG] The server closed the connection, opening a new socket"); \
-            sockfd = open_connection(server_ip, PORT, AF_INET, SOCK_STREAM, 0); \
-            printf("[DEBUG] Socket is now: %d\n", sockfd);  \
+            ERROR(SERVER_CONNECTION_CLOSED);     \
+            sockfd = -1;    \
+            while (sockfd < 0) {    \
+                sockfd = open_connection(server_ip, PORT, AF_INET, SOCK_STREAM, 0); \
+            }   \
         }   \
-    } while (0)
-
+    } while (sockfd < 0)
 
 int main() {
 
@@ -87,8 +88,6 @@ int main() {
             RESTORE_SOCKFD(login_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
-            printf("The cookie is: %s\n", cookie);
-
             /*
              * If the login was successful then the client must delete the previous
              * @jwt_token.
@@ -110,8 +109,6 @@ int main() {
             int enter_library_ret = enter_library(sockfd, cookie, &jwt_token);
             RESTORE_SOCKFD(enter_library_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
-
-            printf("The token is: %s\n", jwt_token);
 
         } else if (strncmp(input_buffer, GET_BOOKS, sizeof(GET_BOOKS) - 1) == 0) {
 
@@ -157,6 +154,14 @@ int main() {
             FREE(jwt_token);
 
             break;
+
+        } else {
+            
+            /*
+             * The command does not exist.
+             *
+             */
+            ERROR(INVALID_COMMAND_ERROR);
 
         }
 

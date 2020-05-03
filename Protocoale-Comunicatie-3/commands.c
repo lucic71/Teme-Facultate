@@ -64,11 +64,8 @@ int op_register(int sockfd) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto op_register_end;
-
     }
 
     /*
@@ -77,13 +74,11 @@ int op_register(int sockfd) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto op_register_end;
     }
 
-    if (!contains_status_code(response, SUCCESS)) {
+    if (!contains_status_code(response, CREATED)) {
         ERROR(REGISTER_FAIL);
 
         return_status = OPERATION_FAILED;
@@ -179,11 +174,8 @@ int login(int sockfd, char **cookie) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto login_end;
-
     }
 
     /*
@@ -192,8 +184,6 @@ int login(int sockfd, char **cookie) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto login_end;
     }
@@ -277,11 +267,8 @@ int enter_library(int sockfd, char *cookie, char **jwt_token) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto enter_library_end;
-
     }
 
     /*
@@ -290,8 +277,6 @@ int enter_library(int sockfd, char *cookie, char **jwt_token) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto enter_library_end;
     }
@@ -369,11 +354,8 @@ int get_books(int sockfd, char *jwt_token) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto get_books_end;
-
     }
 
     /*
@@ -382,8 +364,6 @@ int get_books(int sockfd, char *jwt_token) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto get_books_end;
     }
@@ -454,11 +434,8 @@ int get_book(int sockfd, char *jwt_token) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto get_book_end;
-
     }
 
     /*
@@ -467,8 +444,6 @@ int get_book(int sockfd, char *jwt_token) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto get_book_end;
     }
@@ -556,8 +531,6 @@ int add_book(int sockfd, char *jwt_token) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_FAILED;
         goto add_book_end;
     }
@@ -568,8 +541,6 @@ int add_book(int sockfd, char *jwt_token) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto add_book_end;
     }
@@ -644,11 +615,8 @@ int delete_book(int sockfd, char *jwt_token) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto delete_book_end;
-
     }
 
     /*
@@ -657,8 +625,6 @@ int delete_book(int sockfd, char *jwt_token) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto delete_book_end;
     }
@@ -722,11 +688,8 @@ int logout(int sockfd, char *cookie) {
      */
     int send_to_server_ret = send_to_server(sockfd, request);
     if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
-        ERROR(SEND_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto logout_end;
-
     }
 
     /*
@@ -735,8 +698,6 @@ int logout(int sockfd, char *cookie) {
      */
     response = receive_from_server(sockfd);
     if (response == NULL) {
-        ERROR(RECV_ERROR);
-
         return_status = OPERATION_CONNECTION_CLOSED;
         goto logout_end;
     }

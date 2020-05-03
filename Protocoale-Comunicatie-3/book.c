@@ -135,6 +135,8 @@ void delete_book_id(book_id_t *book_id) {
 
 void print_json_book_list(char *book_list_string) {
 
+    int books_counter = 0;
+
     cJSON *book_list = cJSON_Parse(book_list_string);
     cJSON *book      = NULL;
 
@@ -153,13 +155,21 @@ void print_json_book_list(char *book_list_string) {
 
         FREE(title_string);
         FREE(id_string);
+
+        books_counter++;
     }
 
     cJSON_Delete(book_list);
 
+    if (books_counter == 0) {
+        puts(NO_BOOKS_ERROR);
+    }
+
 }
 
 void print_json_book(char *book_string) {
+
+    int books_counter = 0;
 
     cJSON *books = cJSON_Parse(book_string);
     cJSON *book  = NULL;
@@ -195,9 +205,15 @@ void print_json_book(char *book_string) {
         FREE(page_count_string);
         FREE(publisher_string);
 
+        books_counter++;
+
     }
 
     cJSON_Delete(books);
+
+    if (books_counter == 0) {
+        puts(NO_BOOKS_ERROR);
+    }
 
 }
 

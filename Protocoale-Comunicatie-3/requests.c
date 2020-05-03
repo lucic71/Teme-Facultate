@@ -39,7 +39,7 @@ char *compute_get_request(char *host, char *url, char *query_params,
         FREE(message);
         FREE(line);
 
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Add a host to GET request", NULL);
+        ERROR_HANDLER(true, NULL);
     }
 
     memset(line, 0x00, LINELEN);
@@ -114,7 +114,7 @@ char *compute_delete_request(char *host, char *url, char *query_params,
         FREE(message);
         FREE(line);
 
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Add a host to DELETE request", NULL);
+        ERROR_HANDLER(true, NULL);
     }
 
     memset(line, 0x00, LINELEN);
@@ -193,7 +193,7 @@ char *compute_post_request(char *host, char *url, char* content_type, char **bod
         FREE(line);
         FREE(body_data_buffer);
 
-        NONVOID_ERROR_HANDLER(true, "[ERROR] Add a host to POST request", NULL);
+        ERROR_HANDLER(true, NULL);
     }
 
     memset(line, 0x00, LINELEN);
@@ -216,7 +216,7 @@ char *compute_post_request(char *host, char *url, char* content_type, char **bod
         FREE(line);
         FREE(body_data_buffer);
 
-        NONVOID_ERROR_HANDLER(true, "[ERROR] body_data missing in POST request", NULL);
+        ERROR_HANDLER(true, NULL);
     }
 
     /*

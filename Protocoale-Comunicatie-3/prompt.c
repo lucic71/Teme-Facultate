@@ -26,13 +26,13 @@ char *read_item(char *item_name, int item_max_len, int echo) {
 
         // get current attributes
         int tcgetattr_ret = tcgetattr(STDIN_FILENO, &current);
-        NONVOID_ERROR_HANDLER(tcgetattr_ret == -1, "[ERROR] tcgetattr", NULL);
+        ERROR_HANDLER(tcgetattr_ret == -1, NULL);
 
         modified = current;
         modified.c_lflag &= ~ECHO;
 
         int tcsetattr_ret = tcsetattr(STDIN_FILENO, TCSAFLUSH, &modified);
-        NONVOID_ERROR_HANDLER(tcsetattr_ret == -1, "[ERROR] tcsetattr", NULL);
+        ERROR_HANDLER(tcsetattr_ret == -1, NULL);
     }
 
     /*
@@ -52,7 +52,7 @@ char *read_item(char *item_name, int item_max_len, int echo) {
          *
          */
         int tcsetattr_ret = tcsetattr(STDIN_FILENO, TCSANOW, &current);
-        NONVOID_ERROR_HANDLER(tcsetattr_ret == -1, "get_auth_info: tcsetattr", NULL);
+        ERROR_HANDLER(tcsetattr_ret == -1, NULL);
     }
 
     /*

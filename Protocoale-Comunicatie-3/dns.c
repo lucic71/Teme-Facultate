@@ -27,8 +27,7 @@ char *get_ip(char *name) {
      */
     struct addrinfo *result;
     int getaddrinfo_ret = getaddrinfo(name, NULL, &hints, &result);
-    NONVOID_ERROR_HANDLER(getaddrinfo_ret < 0, "[ERROR] get_ip: getaddrinfo ", 
-            NULL);
+    ERROR_HANDLER(getaddrinfo_ret < 0, NULL);
 
     /*
      * Get the IPv4 address from @result.

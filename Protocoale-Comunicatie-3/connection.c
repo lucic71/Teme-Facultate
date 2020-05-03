@@ -25,7 +25,7 @@ int open_connection(char *host_ip, int portno, int ip_type, int socket_type, int
      *
      */
     int sockfd = socket(ip_type, socket_type, flag);
-    NONVOID_ERROR_HANDLER(sockfd < 0, "[ERROR] open_connection: socket", OPEN_CONNECTION_FAILED);
+    ERROR_HANDLER(sockfd < 0, OPEN_CONNECTION_FAILED);
 
     /*
      * Fill the information about the server in a struct sockaddr_in.
@@ -43,7 +43,7 @@ int open_connection(char *host_ip, int portno, int ip_type, int socket_type, int
      *
      */
     int connect_ret = connect(sockfd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
-    NONVOID_ERROR_HANDLER(connect_ret < 0, "[ERROR] open_connection: socket", OPEN_CONNECTION_FAILED);
+    ERROR_HANDLER(connect_ret < 0, OPEN_CONNECTION_FAILED);
 
     return sockfd;
 }
@@ -60,7 +60,7 @@ int send_to_server(int sockfd, char *message) {
 
     do {
         bytes = write(sockfd, message + sent, total - sent);
-        NONVOID_ERROR_HANDLER(bytes < 0, "[ERROR] send_to_server: write ", SEND_TO_SERVER_FAILED);
+        ERROR_HANDLER(bytes < 0, SEND_TO_SERVER_FAILED);
 
         if (bytes == 0) {
             puts("[DEBUG] Message sent successfully!");
@@ -89,12 +89,12 @@ char *receive_from_server(int sockfd) {
 
         if (bytes < 0){
             buffer_destroy(&buffer);
-            NONVOID_ERROR_HANDLER(true, "[ERROR] receive_from_server: read ", NULL);
+            ERROR_HANDLER(true, NULL);
         }
 
         if (bytes == 0) {
             buffer_destroy(&buffer);
-            NONVOID_ERROR_HANDLER(true, "[DEBUG] The server closed the connection.", NULL);
+            ERROR_HANDLER(true, NULL);
         }
 
         buffer_add(&buffer, response, (size_t) bytes);
@@ -127,12 +127,12 @@ char *receive_from_server(int sockfd) {
 
         if (bytes < 0){
             buffer_destroy(&buffer);
-            NONVOID_ERROR_HANDLER(true, "[ERROR] receive_from_server: read ", NULL);
+            ERROR_HANDLER(true, NULL);
         }
 
         if (bytes == 0) {
             buffer_destroy(&buffer);
-            NONVOID_ERROR_HANDLER(true, "[DEBUG] The server closed the connection.", NULL);
+            ERROR_HANDLER(true, NULL);
         }
 
         buffer_add(&buffer, response, (size_t) bytes);

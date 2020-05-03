@@ -13,7 +13,8 @@
  * Status codes received in HTTP responses.
  *
  */
-#define SUCCESS     "200 OK"
+#define SUCCESS "200 OK"
+#define CREATED "201 Created"
 
 /*
  * Function that checks if HTTP @response contains @status_code.
