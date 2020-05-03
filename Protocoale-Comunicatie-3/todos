@@ -1,4 +1,0 @@
-if the user is already in library dont let it in one more time
--refactor the cookies in compute get request
--change the way error is handled when a response is reciving a bad requset or 
-    forbidden
