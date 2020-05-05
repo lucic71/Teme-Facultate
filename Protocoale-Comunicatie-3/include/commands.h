@@ -35,7 +35,7 @@
 
 /*
  * Registers an account to the server. The connection
- * with the server must be established on @sockfd.
+ * with the server must be established on @*sockfd.
  *
  * If the server closed the connection with the client then
  * OPERATION_CONNECTION_CLOSED error code will be returned. If any other
@@ -45,7 +45,7 @@
  *
  */
 
-int op_register(int sockfd);
+int op_register(int *sockfd);
 
 /*
  * Logins to the server and returns a session cookie.
@@ -54,21 +54,21 @@ int op_register(int sockfd);
  *
  */
 
-int login(int sockfd, char **cookie);
+int login(int *sockfd, char **cookie);
 
 /*
  * Using a @cookie, send a GET request to the library access URL and return
  * a JWT Token in @jwt_token.
  *
  */
-int enter_library(int sockfd, char *cookie, char **jwt_token);
+int enter_library(int *sockfd, char *cookie, char **jwt_token);
 
 /*
  * Using a @jwt_token, send a GET request to the library URL and print the
  * received list of JSON object.
  *
  */
-int get_books(int sockfd, char *jwt_token);
+int get_books(int *sockfd, char *jwt_token);
 
 /*
  * Using a @jwt_token, send a GET request to the library URL and print the
@@ -76,31 +76,27 @@ int get_books(int sockfd, char *jwt_token);
  *
  */
 
-/*
- * These macros are used when reading the input from user.
- *
- */
-int get_book(int sockfd, char *jwt_token);
+int get_book(int *sockfd, char *jwt_token);
 
 /*
  * Using a @jwt_token, send a POST request to the add book URL. The info
  * about the book will be fed from a prompt.
  *
  */
-int add_book(int sockfd, char *jwt_token);
+int add_book(int *sockfd, char *jwt_token);
 
 /*
  * Using a @jwt_token, send a DELETE request to the add book URL. The info
  * about the book will be fed from a prompt.
  *
  */
-int delete_book(int sockfd, char *jwt_token);
+int delete_book(int *sockfd, char *jwt_token);
 
 /*
  * Logs out using the @cookie.
  *
  */
-int logout(int sockfd, char *cookie);
+int logout(int *sockfd, char *cookie);
 
 #endif
 

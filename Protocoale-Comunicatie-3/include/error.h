@@ -64,6 +64,7 @@
  *
  */
 #define SERVER_CONNECTION_CLOSED "Server closed the connection. Please retry the operation!"
+#define NO_INTERNET_CONNECTION   "There is no internet connection!"
 
 /*
  * Error messages for invalid cookies or tokens.
@@ -72,6 +73,7 @@
 #define ACTIVE_COOKIE_ERROR "You must logout before making this operation!"
 #define COOKIE_ERROR        "You must login before making this operation!"
 #define JWT_TOKEN_ERROR     "You must enter library before making this operation!"
+#define ENTER_LIBARY_ERROR  "You are already in library!"
 
 #define ERROR_HANDLER(assertion, return_value) \
 	do {								\

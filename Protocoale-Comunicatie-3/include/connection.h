@@ -51,4 +51,17 @@ int send_to_server(int sockfd, char *message);
  */
 char *receive_from_server(int sockfd);
 
+/*
+ * Sends request and tries SEND_RECV_TIMEOUT times to receive a response.
+ *
+ * Returns SEND_RECV_FAIL on failure and SEND_RECV_SUCC on success.
+ *
+ */
+#define SEND_RECV_FAIL -1
+#define SEND_RECV_SUCC 0
+
+#define SEND_RECV_TIMEOUT 10
+
+int send_and_receive(int *sockfd, char *request, char **response);
+
 #endif

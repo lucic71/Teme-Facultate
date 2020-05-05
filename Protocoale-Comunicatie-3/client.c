@@ -32,14 +32,21 @@ int main() {
      *
      */
     char *server_ip = get_ip(SERVER);
-    printf("[DEBUG] Server IPv4 is: %s\n", server_ip);
+
+    /*
+     * If the DNS request did not succeed then there is no internet connection.
+     *
+     */
+    if (server_ip == NULL) {
+        ERROR(NO_INTERNET_CONNECTION);
+        exit(EXIT_FAILURE);
+    }
 
     /*
      * Open a connection with the server.
      *
      */
     int sockfd = open_connection(server_ip, PORT, AF_INET, SOCK_STREAM, 0);
-    printf("[DEBUG] Connection established on socket: %d\n", sockfd);
 
     /*
      * Buffer for reading the input from the user.
@@ -72,7 +79,7 @@ int main() {
 
         if (strncmp(input_buffer, REGISTER, sizeof(REGISTER) - 1) == 0) {
 
-            int register_ret = op_register(sockfd);
+            int register_ret = op_register(&sockfd);
 
             /*
              * If the connection closed during the register operation then a new
@@ -84,7 +91,7 @@ int main() {
 
         } else if (strncmp(input_buffer, LOGIN, sizeof(LOGIN) - 1) == 0) {
             
-            int login_ret = login(sockfd, &cookie);
+            int login_ret = login(&sockfd, &cookie);
             RESTORE_SOCKFD(login_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
@@ -104,39 +111,37 @@ int main() {
              * delete it because a new enter_library will generate a new jwt_token.
              *
              */
-            FREE(jwt_token);
-
-            int enter_library_ret = enter_library(sockfd, cookie, &jwt_token);
+            int enter_library_ret = enter_library(&sockfd, cookie, &jwt_token);
             RESTORE_SOCKFD(enter_library_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
         } else if (strncmp(input_buffer, GET_BOOKS, sizeof(GET_BOOKS) - 1) == 0) {
 
-            int get_books_ret = get_books(sockfd, jwt_token);
+            int get_books_ret = get_books(&sockfd, jwt_token);
             RESTORE_SOCKFD(get_books_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
         } else if (strncmp(input_buffer, GET_BOOK, sizeof(GET_BOOK) - 1) == 0) {
 
-            int get_book_ret = get_book(sockfd, jwt_token);
+            int get_book_ret = get_book(&sockfd, jwt_token);
             RESTORE_SOCKFD(get_book_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
         } else if (strncmp(input_buffer, ADD_BOOK, sizeof(ADD_BOOK) - 1) == 0) {
 
-            int add_book_ret = add_book(sockfd, jwt_token);
+            int add_book_ret = add_book(&sockfd, jwt_token);
             RESTORE_SOCKFD(add_book_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
         } else if (strncmp(input_buffer, DELETE_BOOK, sizeof(DELETE_BOOK) - 1) == 0) {
 
-            int delete_book_ret = delete_book(sockfd, jwt_token);
+            int delete_book_ret = delete_book(&sockfd, jwt_token);
             RESTORE_SOCKFD(delete_book_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
         
         } else if (strncmp(input_buffer, LOGOUT, sizeof(LOGOUT) - 1) == 0) {
 
-            int logout_ret = logout(sockfd, cookie);
+            int logout_ret = logout(&sockfd, cookie);
             RESTORE_SOCKFD(logout_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
@@ -147,7 +152,7 @@ int main() {
 
         } else if (strncmp(input_buffer, EXIT, sizeof(EXIT) - 1) == 0) {
 
-            puts("[DEBUG] Closing the connection with the server, goodbye.");
+            puts("Closing the connection with the server, goodbye.");
             close(sockfd);
 
             FREE(cookie);

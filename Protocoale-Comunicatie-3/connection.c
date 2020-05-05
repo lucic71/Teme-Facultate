@@ -11,6 +11,8 @@
 #include <connection.h>
 #include <error.h>
 #include <buffer.h>
+#include <server.h>
+#include <dns.h>
 
 void compute_message(char *message, const char *line) {
 
@@ -141,6 +143,83 @@ char *receive_from_server(int sockfd) {
     buffer_add(&buffer, "", 1);
     return buffer.data;
 }
+
+
+int send_and_receive(int *sockfd, char *request, char **response) {
+
+    char *server_ip = get_ip(SERVER);
+    bool connection_failed = false;
+
+    int return_status = SEND_RECV_FAIL;
+
+    for (size_t i = 0; i < SEND_RECV_TIMEOUT; i++) {
+
+        /*
+         * Repoen the connection if it closed.
+         *
+         */
+        if (connection_failed == true) {
+            *sockfd = open_connection(server_ip, PORT, AF_INET, SOCK_STREAM, 0);
+            connection_failed = false;
+        }
+
+        /*
+         * Maybe the connection failed and sockfd is now -1.
+         *
+         */
+        if (*sockfd == -1) {
+            continue;
+        }
+
+        /*
+         * Try to send to server and to receive.
+         *
+         */
+        int send_to_server_ret = send_to_server(*sockfd, request);
+
+        if (send_to_server_ret == SEND_TO_SERVER_FAILED) {
+            connection_failed = true;
+            continue;
+        }
+
+        *response = receive_from_server(*sockfd);
+
+        if (*response == NULL) {
+            connection_failed = true;
+            continue;
+        }
+
+        /*
+         * If the above operations did not fail then break from loop.
+         *
+         */
+        return_status = SEND_RECV_SUCC;
+        break;
+    }
+
+    return return_status;
+
+}
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
