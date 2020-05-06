@@ -145,9 +145,13 @@ int main() {
             RESTORE_SOCKFD(logout_ret == OPERATION_CONNECTION_CLOSED, 
                     sockfd, server_ip);
 
-            // delete the cookie if the operation was successful
+            /*
+             * Delete the cookie and the jwt_token if the operation was successful.
+             *
+             */
             if (logout_ret == OPERATION_SUCCESSFUL) {
                 FREE(cookie);
+                FREE(jwt_token);
             }
 
         } else if (strncmp(input_buffer, EXIT, sizeof(EXIT) - 1) == 0) {

@@ -661,18 +661,3 @@ logout_end:
     return return_status;
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
