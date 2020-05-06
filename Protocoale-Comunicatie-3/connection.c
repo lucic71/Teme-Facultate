@@ -200,30 +200,3 @@ int send_and_receive(int *sockfd, char *request, char **response) {
     return return_status;
 
 }
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

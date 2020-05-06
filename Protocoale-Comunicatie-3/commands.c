@@ -70,7 +70,7 @@ int op_register(int *sockfd) {
     }
 
     if (!contains_status_code(response, CREATED)) {
-        ERROR(REGISTER_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto op_register_end;
@@ -171,7 +171,7 @@ int login(int *sockfd, char **cookie) {
     }
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(LOGIN_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto login_end;
@@ -266,7 +266,7 @@ int enter_library(int *sockfd, char *cookie, char **jwt_token) {
     }
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(ENTER_LIBRARY_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto enter_library_end;
@@ -345,7 +345,7 @@ int get_books(int *sockfd, char *jwt_token) {
 
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(GET_BOOKS_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto get_books_end;
@@ -417,7 +417,7 @@ int get_book(int *sockfd, char *jwt_token) {
 
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(GET_BOOK_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto get_book_end;
@@ -505,7 +505,7 @@ int add_book(int *sockfd, char *jwt_token) {
     }
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(ADD_BOOK_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto add_book_end;
@@ -580,7 +580,7 @@ int delete_book(int *sockfd, char *jwt_token) {
     }
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(DELETE_BOOK_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto delete_book_end;
@@ -644,7 +644,7 @@ int logout(int *sockfd, char *cookie) {
     }
 
     if (!contains_status_code(response, SUCCESS)) {
-        ERROR(LOGOUT_FAIL);
+        print_http_error(basic_extract_json_response(response));
 
         return_status = OPERATION_FAILED;
         goto logout_end;

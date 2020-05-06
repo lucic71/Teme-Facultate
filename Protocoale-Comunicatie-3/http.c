@@ -1,7 +1,12 @@
 #include <stddef.h>
 #include <string.h>
 
+#include <stdio.h>
+
 #include <http.h>
+#include <cJSON.h>
+
+#define ERROR_JSON_OBJECT "error"
 
 bool contains_status_code(char *response, char *status_code) {
 
@@ -28,3 +33,23 @@ char *basic_extract_cookie_response(char *response) {
 char *basic_extract_crlf_response(char *response) {
     return strstr(response, CRLF);
 }
+
+void print_http_error(char *json_response) {
+
+    if (json_response == NULL) {
+        return;
+    }
+
+    cJSON *cjson_response = cJSON_Parse(json_response);
+
+    if (cjson_response == NULL) {
+        return;
+    }
+
+    cJSON *cjson_error = cJSON_GetObjectItemCaseSensitive(cjson_response, ERROR_JSON_OBJECT);
+
+    puts(cjson_error->valuestring);
+    cJSON_Delete(cjson_response);
+
+}
+

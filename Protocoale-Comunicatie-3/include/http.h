@@ -41,5 +41,7 @@ char *basic_extract_cookie_response(char *respose);
 
 char *basic_extract_crlf_response(char *response);
 
+void print_http_error(char *json_response);
+
 
 #endif
