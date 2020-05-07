@@ -1,0 +1,165 @@
+POPESCU LUCIAN IOAN 321CDa
+--------------------------
+
+    TEMA 2 PROTOCOALE DE COMUNICATIE
+    --------------------------------
+
+I. File list
+------------
+include/             Header files containing definitions of functions, macros
+                     and data structures for Topic and Client.
+protocol.cpp         Sends packets between the server and the subscribers
+server.cpp           Implements the server side functionality
+server_utils.cpp     Utils that forward topics, manage clients, etc
+subscriber.cpp       Implements the client side functionality
+subscriber_utils.cpp Utilis that print a topic to stdout
+tcp_handler.cpp      Accepts connections, establishes connections, etc
+udp_handler.cpp      Establishes connections and parses datagrams
+Makefile             Makefile to build the server and subscriber executables
+README               This file
+
+Notations:
+    @       - variable
+    #       - function
+    CAPITAL - macro
+
+II. Protocol
+------------
+The protocol used for communcation between the server and the subscribers is
+build on top of the TCP protocol. It consists of multiple replies and
+requests between the two instances.
+
+Firstly the server tries to accept the connection of the subscriber using
+the accept(2) function. In this time an IDREQUEST is sent to the subscriber.
+The newly received client ID will be used to print a feedback message
+about the connection to stdout.
+The IDREQUEST consists of a single byte defined in include/protocol.hpp.
+When the subscriber receives this byte from the socket, it sends back
+at most CLIENTID_MAX_LEN(include/protocol.cpp:33) bytes, containing its client
+id.
+
+If the client already exists in the database of the server then a
+CONNECTION_REFUSED_BYTE(include/protocol.hpp:21) is sent and the client must 
+disconnect. This way the server makes sure that there will not be two clients
+with the same ID at the same time.
+
+Next, the subscriber will send an un/subscribe request. For a subscribe request
+the format is the following: "subscribe $topic $SF". The request is sent
+in text-format, using human readable characters, over the socket. When arriving
+to the server, it parses the packet and binds the clients with its desired
+topic. The same happens for an unsubscribe request.
+
+The last type of communication occurs when a topic is sent over the socket.
+The server sends in the beginning a TOPIC_ANNOUNCEMENT_BYTE
+(include/protocol.hpp:20) to let the subscriber know that a topic is waiting to
+be transmitted. Next, the server sends the following fields from the Topic
+structure(include/topic.hpp): ip, port, topic, data_type, value_sz. After
+the client receives the value_sz field it will wait for value_sz bytes that
+represent the value field from Topic. This happens because all the fields
+in Topic have fixed length, except value, which can vary between 1 and
+1500 bytes. The subscriber will also check if it received the correct number of
+bytes. If not it will recall recv(2) to fill the buffer. However, if the
+correct number of bytes is not received correctly in the second try, the
+subscriber will probably crash or may produce undefined behavior.
+
+III. Server
+-----------
+The server consist of an initialization phase and a forwarding phase.
+In the initialization phase TCP and UDP connections are established,
+also data structures for topic and clients are declared. Next is
+the forwarding phase where a select(2) call multiplexes between different
+file descriptors(TCP listener, UDP listener, TCP clients, stdin).
+
+If the @tcp_listener file descriptor is on it means that a new subscriber
+waits to be accepted using include/tcp_handler.hpp:#accept_connection. This
+is also the step where the pending topics are sent to the newly subscribed
+client.
+
+IF @clients file descriptors are on it means that a new un/subscribe request
+is coming and the server must process it. If the subscriber sends 0 bytes
+on the socket then it disconnected and the server must delete its entry
+from @clients and unvalidate its entry in @topics_table.
+
+If the @udp_listener file descriptor is on it means that a new topic arrived
+on the UDP socket, therefore the server will parse the topic to a Topic
+data structure(include/topic.hpp) and forward the topic using
+include/server_utils.hpp:#forward_topic. Next if the clients disconnected
+during the forwarding then delete their entry from @clients also and
+unvalidate their entry in @topics_table.
+
+If STDIN_FILENO is set then the server received a command from stdin.
+The only command in exit so the server will break from the forwarding
+phase, will kill the connections with the clients and will end the
+process.
+
+IV. Subscriber
+--------------
+The subscriber operates in a similar way with the server. It has an 
+initialization phase where it declares a global buffer and connection
+through the socket and a receiving phase where it waits data either from
+server or from stdin
+
+If it receives data from server, using the file descriptor @socket_fd,
+it has to check what kind of data it is by checking @announce_byte,
+which can have one of the following three values:
+IDREQUEST_ANNOUNCEMENT_BYTE, TOPIC_ANNOUNCEMENT_BYTE, CONNECTION_REFUSED_BYTE.
+They are defined in include/protocol.hpp.
+
+If it receives data from stdin, then it must disconnect if the command is
+exit.
+
+
+V. Data structures
+------------------
+For representing @topics_table and @pending_table I chose a std::unordered_map
+because it let me bind a topic name(@topics_table) represented as a std::string
+with a std::list of clients subscribed to that topic. Same goes for @pending_table,
+I bound std::string representing the client id with a std::list of topics that
+will be received by it after it reconnects.
+
+For representing the @clients I chose a ClientIO structure, defined in include/
+Client.hpp. It is basically the same as Client, also defined in include/Client.hpp,
+but without the SF option. The latter is used in @topics_table and helps the server
+to keep track of the clients susbcribed to a given topic. I could have used a single
+Client structure but for me it would have been more ambiguous, so I chose the
+easier way.
+
+VI. Macros
+----------
+I defined macros for each function that I considered to be error-prone in the
+header files associated with the respective functions. I did so because I
+wanted the code to be as readable as possible, so I tried not to mix the
+main code with the error handling code.
+
+
+VII. Bottlenecks, known bugs and edge cases
+-------------------------------
+When the client connects to the server there must exist a delay between the time
+the connection is established and the first un/subscribe request is sent. This
+happens because the server must send back a clientID request which may overlap
+with a subscribe request sent by the subscriber. So if, for example, the user
+sends its input through a pipe, the subscriber and server will not handle
+correctly the input. (example: cat commands | ./subscriber id ip port)
+
+If the subscriber fills the server with a lot of unuseful subscriptions, the
+server has no way to know that it should delete them and will eventually run
+out of memory.
+
+Before the server disconencts, all messages will arrive to subscribers, because
+in the forwarding phase of the server, the stdin input is handled after all
+operations are done(forwarding, receiving from udp), so the subscribers should 
+expect that all topics are received.
+
+The subscribers and the server will output meaningful messages to stdout when
+an invalid operation occurs.
+
+If a client will not be able to receive data through the socket on which it is
+connected then it will exit and will display an error message. This happens
+because when the data is malformed or cannot be transmitted it means that
+something bad happened with the server so the client should not continue to
+live.
+
+When a client disconnects during topics forwarding then a new entry for its
+client id is created in @pending_topics and the topics will be retransmitted
+when it reconnects. If it disconnects even when the pending topics forwarding
+is performed, then the topics will be dropped.
