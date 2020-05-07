@@ -1,0 +1,57 @@
+POPESCU LUCIAN-IOAN 321CDa
+--------------------------
+
+    TEMA 2 PP
+    ---------
+
+I. RollTheBall
+--------------
+
+In acest fisier am definit tipurile de date pentru o celula si o matrice de
+celule.
+
+Tipul de date Cell contine un Pipe si un Fixed, care sunt sinonime pentru un 
+Char definit in Pipes.hs si un Bool.
+Tipul de date Level contine un Data.Array plin de Cell-uri si doua Int-uri ce
+definesc marimea Array-ului. Am ales sa introduc si dimensiunile deoarece
+multe functii vitoare le folosesc. Un aspect important din structura Level e
+ca pe langa Cell-urile normale care contin Pipe-uri, la finalul fiecarei linii
+exista niste Cell-uri ce contin un caracter ENDL pentru a face afisarea
+nivelului mai usoara.
+
+Functiile care urmeaza mai jos folosesc aceste tipuri de date si sunt
+implementate in mare folosind garzi deoarece exista multe cazuri de tratat
+si structurile de tip if ar fi facut codul prea neclar.
+
+La finalul fisierului se instanteaza clasa ProblemState pentru starea Level
+si actiunea (Position, Directions).
+
+II. Search
+----------
+
+Primul lucru pe care l-am facut in acest fisier a fost sa creez spatiul de
+stari folosind functia crateStateSpace care mi-a pus probleme la inceput
+deoarece nu am inteles cum sa tin o referinta la nodul curent in campul pentru
+parinte.
+
+In continuare am folosit bfs pentru a traversa graful de mai devreme. Pentru
+asta am folosit o recursivitate pe stiva in care la fiecare pas adaugam noile
+frontiere ale traversarii.
+
+Pentru bidirBFS am folosit doua Data.Set care tin nodurile deja vizitate
+din cele doua parcurgeri (de la nodul de start si de la nodul de end). Atunci
+cand un nod se afla in cele doua seturi inseamna ca am gasit intersectia celor
+doua drumuri.
+
+extractPath merge din parinte in parinte pana da de un nod cu parintele null.
+
+In solve se extrage path-ul de la start la mijloc si de la mijloc la end,
+path-ul cel din urma ajustandu-se corect dupa.
+
+Pentru mai multe detalii legate de implementare am adaugat comentarii inainte
+de fiecare functie implementata.
+
+III. AStarHeuristic
+-------------------
+
+Pentru aceasta parte a temei am implementat tot mai putin nonTrivialHeuristic.
