@@ -1,0 +1,57 @@
+I. File list
+------------
+
+tema1.asm    contains the main function of the program that evaluates an AST
+             using the EvaluateAST subroutine
+strtonum.asm contains util functions used in EvaluateAST, i.e.
+             StringToNumberSubroutine and StringLengthSubroutine
+Makefile     used to assemble and link the program resulting 'tema1' executable
+
+II. Program flow
+----------------
+After the program calls the getAST subroutine to parse the string given at stdin
+to an AST, EvaluateAST is called. It will try to evaluate the expression in the
+tree using the following algorithm:
+
+        if(node is number) then
+            return node
+        else if(node.content is operator) then
+            return left_subtree `operator` right_subtree
+        endif
+
+where operator can be +, -, * or /. To accomplish this, the CheckIfSubtreeIs
+Operator will be called and the correct jmp will be performed. If the node
+is a number then the program jumps to ReturnNumericValue and EvaluateAST
+returns the corresponding number using StringToNumberSubroutine. If the node
+is an operator then the program continues to execute instructions from
+ReturnOperationResult. Here the subroutine is recursively called for right
+subtree and left subtree. They can be found at offset 8, respectively 4 from
+the node_ast pointer. In the end comparing the operator with +, -, * and /
+will decide which operation to produce. After this the function returns the
+result.
+
+III. Utils from strtonum
+------------------------
+A. StringtoNumberSubroutine
+This subroutine tries to compute a number represented as string to an int type
+value. Firstly the subroutine checks if the number starts with a minus sign
+so that at the end of the subroutine the number can be accordingly set. Then
+it computes the length of the string so that it can iterate through each
+byte until a NULL byte is encountered. The number is calculated using the
+following formula: 'number = number * 10 + (digit - '0')' where '0' is the
+ascii value of character '0'. After this the number is returned and multiplied
+with -1 if it contained a '-' sign.
+
+B. StringLengthSubroutine
+The code in this subroutine simply increments <ECX> until a NULL byte is
+encountered in the string from <ESI>, producing in the end the length
+of the string. Of course there are more optimized methods to compute
+the length of a string but this is the simplest and can be easly understood
+when debugging the program.
+
+IV. Flaws and corner cases
+--------------------------
+No optimisation was run on the present code so the size of the program and
+the execution time is relatively high for such an algorithm. Also the program
+does not check if the resulting values can be fit in a 4-byte register, causing
+a possible overflow.
