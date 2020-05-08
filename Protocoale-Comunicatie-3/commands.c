@@ -3,17 +3,17 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include <commands.h>
-#include <cJSON.h>
-#include <requests.h>
-#include <error.h>
-#include <connection.h>
-#include <authentication.h>
-#include <book.h>
-#include <memory.h>
-#include <http.h>
+#include "commands.h"
+#include "cJSON.h"
+#include "requests.h"
+#include "error.h"
+#include "connection.h"
+#include "authentication.h"
+#include "book.h"
+#include "memory.h"
+#include "http.h"
 
-#include <server.h>
+#include "server.h"
 
 int op_register(int *sockfd) {
     auth_info_t *auth_info     = NULL;

@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include <termios.h>
 
-#include <authentication.h>
-#include <cJSON.h>
-#include <error.h>
-#include <memory.h>
-#include <prompt.h>
+#include "authentication.h"
+#include "cJSON.h"
+#include "error.h"
+#include "memory.h"
+#include "prompt.h"
 
 auth_info_t *get_auth_info() {
     char *username = read_item(USERNAME, MAX_USER_SZ, ECHO_ON);

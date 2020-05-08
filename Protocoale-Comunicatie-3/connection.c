@@ -8,11 +8,11 @@
 #include <arpa/inet.h>
 #include <stdbool.h>
 
-#include <connection.h>
-#include <error.h>
-#include <buffer.h>
-#include <server.h>
-#include <dns.h>
+#include "connection.h"
+#include "error.h"
+#include "buffer.h"
+#include "server.h"
+#include "dns.h"
 
 void compute_message(char *message, const char *line) {
 

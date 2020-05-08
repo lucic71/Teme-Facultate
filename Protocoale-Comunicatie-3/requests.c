@@ -11,8 +11,8 @@
 
 #include "connection.h"
 #include "requests.h"
-#include <error.h>
-#include <memory.h>
+#include "error.h"
+#include "memory.h"
 
 char *compute_get_request(char *host, char *url, char *query_params,
                             char **cookies, int cookies_count, char *auth_token) {

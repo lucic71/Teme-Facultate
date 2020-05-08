@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include <dns.h>
-#include <error.h>
+#include "dns.h"
+#include "error.h"
 
 char *get_ip(char *name) {
 

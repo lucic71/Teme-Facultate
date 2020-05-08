@@ -3,15 +3,15 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include <error.h>
-#include <connection.h>
-#include <server.h>
-#include <dns.h>
-#include <memory.h>
-#include <commands.h>
+#include "error.h"
+#include "connection.h"
+#include "server.h"
+#include "dns.h"
+#include "memory.h"
+#include "commands.h"
 
 /*
- * This macro to make a stable connection with the server.
+ * This macro makes a stable connection with the server.
  *
  */
 #define RESTORE_SOCKFD(assertion, sockfd, server_ip) \

@@ -1,7 +1,7 @@
 #ifndef BOOK_H_
 #define BOOK_H_
 
-#include <cJSON.h>
+#include "cJSON.h"
 
 /*
  * Number of elements in a book_info structure.

@@ -5,6 +5,7 @@
 
 #include <http.h>
 #include <cJSON.h>
+#include "error.h"
 
 #define ERROR_JSON_OBJECT "error"
 
@@ -48,7 +49,7 @@ void print_http_error(char *json_response) {
 
     cJSON *cjson_error = cJSON_GetObjectItemCaseSensitive(cjson_response, ERROR_JSON_OBJECT);
 
-    puts(cjson_error->valuestring);
+    ERROR(cjson_error->valuestring);
     cJSON_Delete(cjson_response);
 
 }

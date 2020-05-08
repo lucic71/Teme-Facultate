@@ -4,9 +4,9 @@
 #include <string.h>
 #include <termios.h>
 
-#include <prompt.h>
-#include <memory.h>
-#include <error.h>
+#include "prompt.h"
+#include "memory.h"
+#include "error.h"
 
 char *read_item(char *item_name, int item_max_len, int echo) {
     /*
