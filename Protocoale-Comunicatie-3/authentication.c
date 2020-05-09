@@ -61,8 +61,3 @@ void delete_auth_info(auth_info_t *auth_info) {
     FREE(auth_info);
 
 }
-
-
-
-
-

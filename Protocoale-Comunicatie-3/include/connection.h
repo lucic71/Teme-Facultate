@@ -64,4 +64,11 @@ char *receive_from_server(int sockfd);
 
 int send_and_receive(int *sockfd, char *request, char **response);
 
+/*
+ * Make a stabile connection with the server.
+ *
+ */
+void restore_connection(int *sockfd, char *server_ip);
+
+
 #endif

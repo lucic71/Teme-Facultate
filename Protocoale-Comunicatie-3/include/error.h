@@ -63,8 +63,9 @@
  * Error messages for connection with the server.
  *
  */
-#define SERVER_CONNECTION_CLOSED "Server closed the connection. Please retry the operation!"
-#define NO_INTERNET_CONNECTION   "There is no internet connection!"
+#define SERVER_CONNECTION_CLOSED      "Server closed the connection. Please retry the operation!"
+#define NO_INTERNET_CONNECTION        "There is no internet connection!"
+#define UNSTABLE_INTERNET_CONNECTION "Unstable internet connection! Please retry."
 
 /*
  * Error messages for invalid cookies or tokens.
@@ -74,6 +75,12 @@
 #define COOKIE_ERROR        "You must login before making this operation!"
 #define JWT_TOKEN_ERROR     "You must enter library before making this operation!"
 #define ENTER_LIBARY_ERROR  "You are already in library!"
+
+/*
+ * Status message for closing the client.
+ *
+ */
+#define GOODBYE "Closing the connection with the server, goodbye."
 
 #define ERROR_HANDLER(assertion, return_value) \
 	do {								\

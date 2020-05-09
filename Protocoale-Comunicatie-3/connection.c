@@ -148,6 +148,19 @@ char *receive_from_server(int sockfd) {
 int send_and_receive(int *sockfd, char *request, char **response) {
 
     char *server_ip = get_ip(SERVER);
+
+    /*
+     * If the internet connection dies while the client runs, get_ip will
+     * detect this because it makes a DNS request that will use the connection.
+     *
+     * So the client will die to.
+     *
+     */
+    if (server_ip == NULL) {
+        ERROR(NO_INTERNET_CONNECTION);
+        exit(EXIT_FAILURE);
+    }
+
     bool connection_failed = false;
 
     int return_status = SEND_RECV_FAIL;
@@ -198,5 +211,21 @@ int send_and_receive(int *sockfd, char *request, char **response) {
     }
 
     return return_status;
+
+}
+
+void restore_connection(int *sockfd, char *server_ip) {
+
+    for (size_t i = 0; i < SEND_RECV_TIMEOUT; i++) {
+        *sockfd = open_connection(server_ip, PORT, AF_INET, SOCK_STREAM, 0);
+
+        if (*sockfd > 0) {
+            return;
+        }
+
+    }
+
+    ERROR(UNSTABLE_INTERNET_CONNECTION);
+    exit(EXIT_FAILURE);
 
 }
