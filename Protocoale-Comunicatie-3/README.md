@@ -100,3 +100,11 @@ I. File structure.
 The functionality for connecting with the server and creating requests is
 mainly borrowed from lab10 HTTP with some minor changes.
 
+
+III. Conclusions
+----------------
+
+Overall, the application works very smoothly and does not have problems with
+memory leaks or any kind of buffer overflows coming from user. It covers the
+basic functionality of working with a REST API and has a clean and readable
+codebase.

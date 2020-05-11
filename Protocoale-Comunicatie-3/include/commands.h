@@ -43,6 +43,9 @@
  *
  * On success, OPERATION_SUCCESSFUL is returned.
  *
+ * The function is called 'op_register', not 'register' because the
+ * latter one is a keyword in C and cannot be used as a function
+ * name.
  */
 
 int op_register(int *sockfd);
