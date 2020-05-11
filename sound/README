@@ -1,0 +1,81 @@
+Generator de Sunete
+-------------------
+
+Roman Adrian     321CDa
+Raoul Sulimovici 321CDa
+Popescu Lucian   321CDa
+
+I. Scopul proiectului
+---------------------
+
+Aplicatia dezvoltata in LabView isi propune sa genereze diferite sunete
+folosind hardware-ul intern al unui laptop. In plus aceste sunete pot fi
+modulate astfel incat sa apara pe canalul stang sau drept al placii de sunet,
+sa aiba o anumita frecventa sau o anumita amplitudine.
+
+II. Structura proiectului
+------------------------
+
+Legenda: @ variabila
+	 # VI
+
+Ca orice proiect dezvoltat in LabView, generatorul de sunete contine un Front
+Panel unde utilizatorul poate introduce diferite setari pentru sunetele
+produse si un Block Diagram care contine implementarea efectiva a aplicatiei.
+
+Front Panel
+-----------
+
+Front Panelul contine un cluster Sound format folosit pentru initializarea
+sunetului produs, un slider de volum si diferite Numeric Controls care
+descriu:
+- pe ce device sa fie reprodus sunetul (pentru utilizarea hardware-ului dintr-un 
+laptop se foloseste device-ul cu id-ul 0);
+- numarul de samples folosit pentru generarea sunetului pentru amnadoua
+canalele;
+- numarul de samples folosit pentru generarea sunetului pentru un singur
+canal.
+In plus mai exista niste slidere de unde se poate seta amplitudinea si
+frecventa pentru fiecare canal (stang sau drept).
+
+Pentru oprirea aplicatiei se poate folosi butonul de Stop definit sub Numeric
+Controls.
+
+Block Diagram
+-------------
+
+Aici se folosesc toate variabilele definite anterior in Front Panel.
+
+Initial aplicatia face configurari asupra device-ului al carui id l-am
+specificat in @Output Device ID pentru a putea genera sunete, folosind 
+#Sound Output Start. De notat ca se folosesc Continous Samples in intializara
+device-ului pentru a putea folosi mai tarziu forme de unda sinusoidale.
+
+Task id-ul generat de VI-ul anterior e pasat lui #Sound Output Start pentru
+a incepe generearea efectiva de sunete.
+
+In bucla while se seteaza volumul folosind #Sound Output Set Volume.
+Alaturi de semnalele de unda generate de #NI_MABase.lvlib:Sine Waveform
+(cele din partea de sus a buclei While) si de task id-ul generate de
+#Sound Output Set Volume se transimte sunetul la device folosint #Sount Output
+Write.
+
+Bucla se opreste atunci cand apare o eroare sau butonul de Stop e apasat. Dupa
+ce se termina bucla, se apeleaza #Sound Output Clear pentru a invalida task
+id-urile folosite in bucala si pentru a inchide conexiunea cu device-ul.
+
+Erorile sunt manage-uite de #Simple Error Handler si sunt pasate de la VI la
+VI in interiorul buclei while.
+
+III. Concluzii
+--------------
+
+Aplicatia incorporeaza toate cunostintele obtinute pana acum la laboratoarele
+de AD, reusind sa le incorporeze intr-o aplicatie practica. Cateva dintre 
+acestea ar fi:
+- folosirea de Clusterelor si a functiilor care le manipuleaza (bundle,
+unbundle by name);
+- folosirea structurilor de date cum ar fi array-ul folosit pentru impreunarea
+semnalelor produse de #NI_MABase.lvlib:Sine Waveform;
+- folosirea structurilor repetitive (bucla while)
+- etc.
