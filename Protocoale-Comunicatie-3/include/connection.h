@@ -11,6 +11,12 @@
 #define CONTENT_LENGTH_SIZE (sizeof(CONTENT_LENGTH) - 1)
 
 /*
+ * Waits 5 second to connect to server.
+ *
+ */
+#define CONNECTION_TIMEOUT 5
+
+/*
  * Adds a line to a string message.
  *
  */

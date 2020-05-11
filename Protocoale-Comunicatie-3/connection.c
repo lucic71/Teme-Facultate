@@ -7,6 +7,7 @@
 #include <netdb.h>      
 #include <arpa/inet.h>
 #include <stdbool.h>
+#include <time.h>
 
 #include "connection.h"
 #include "error.h"
@@ -39,6 +40,16 @@ int open_connection(char *host_ip, int portno, int ip_type, int socket_type, int
     serv_addr.sin_family = ip_type;
     serv_addr.sin_port = htons(portno);
     inet_aton(host_ip, &serv_addr.sin_addr);
+
+    /*
+     * Set timeout.
+     *
+     */
+    struct timeval tv;
+    tv.tv_sec  = CONNECTION_TIMEOUT;
+    tv.tv_usec = 0;
+
+    setsockopt(sockfd, IPPROTO_TCP, SO_RCVTIMEO, (const char *) &tv, sizeof(tv));
 
     /*
      * Connect to server.
